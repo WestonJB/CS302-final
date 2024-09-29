@@ -8,6 +8,18 @@
 
 struct Player;
 
+enum Color {
+	red,
+	orange,
+	yellow,
+	green,
+	blue,
+	purple,
+	pink,
+	white,
+	black,
+	grey
+}; // more colors can be added if we want
 struct Territory {
 	std::string name;
 	Player *owner;
@@ -28,22 +40,24 @@ struct Card {
 class Player {
 	public:
 		Player (std::string playerName);
+		Color color;
 		std::vector<Territory*> territories;
 		std::vector<Continent*> continents;
 		std::vector<Card> cards;
 		std::string getName() const;
+		int captureTerritory(Territory *territory); // unfinished
 	private:
 		std::string name;
 };
 class Game {
 	public:
-		Game(std::vector<std::string> names);
+		Game(std::vector<std::string> names); // unfinished
 		std::vector<Player> players;
 		std::vector<Continent> continents;
 		std::vector<Card> drawPile;
+		void endTurn();
 	private:
 		int turn;
-		bool setup;
 };
 
 
