@@ -4,13 +4,6 @@
 #include <vector>
 #include "risk.h"
 
-// NOTE: ------- MEANS THAT A LINE IS ASSUMING THAT WE HAVE 6 CONTINENTS
-
-Player::Player(std::string playerName) : name{playerName} {}
-std::string Player::getName() const { return name; }
-
-
-
 Game::Game(std::vector<std::string> names)
         : turn{static_cast<int>(std::rand() % names.size())} {
     // initialize the players
@@ -20,8 +13,11 @@ Game::Game(std::vector<std::string> names)
     // do a bunch of work for the map here
     // initialize the drawPile here
 }
+
 int Game::getTurn() const { return turn; }
+
 void Game::endTurn() { turn = (turn + 1) % players.size(); }
+
 int Game::captureTerritory(Player *player, Territory *territory) {
     /* Return Key:
      * 0: normal capture
