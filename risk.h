@@ -6,7 +6,8 @@
 #include <string>
 #include <vector>
 
-struct Player;
+class Player;
+class Continent;
 
 enum Color {
 	red,
@@ -22,6 +23,7 @@ enum Color {
 }; // more colors can be added if we want
 struct Territory {
 	std::string name;
+	Continent *continent;
 	Player *owner;
 	int armies;
 	int infantry;
@@ -45,7 +47,6 @@ class Player {
 		std::vector<Continent*> continents;
 		std::vector<Card> cards;
 		std::string getName() const;
-		int captureTerritory(Territory *territory); // unfinished
 	private:
 		std::string name;
 };
@@ -55,6 +56,8 @@ class Game {
 		std::vector<Player> players;
 		std::vector<Continent> continents;
 		std::vector<Card> drawPile;
+		int getTurn() const;
+		int captureTerritory(Player *player, Territory *territory);
 		void endTurn();
 	private:
 		int turn;
