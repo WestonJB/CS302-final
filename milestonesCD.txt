@@ -1,0 +1,40 @@
+Repository: https://github.com/WestonJB/CS302-final/tree/main
+
+Compilable Task: Short makefile and small chunks of code.
+
+Time Log:
+9/25 5:00-5:40 (40 min) Downloading Unreal Engine 5 and Blender.
+9/26 6:00-7:00 (60 min) Following along with "Blender Guru's Donut Tutorials" to get started on Blender.
+9/27 7:00-8:25 (25 min) Studying Blender mechanics and shortcuts.
+     9:00-9:45 (45 min) Studying character models and small animations.
+9/28 2:00-3:00 (60 min) Learning Unreal Engine 5.
+9/29 10:00-11:00 (60 min) Watching more tutorials on UE5.
+9/30 6:45-8:00 (75 min) Writing up Challenge 5/Gathering everything learned together.
+
+Report:
+This was one of the worst challenges. Not only am I trying to study for the CS302 exam tommorrow, but I have another exam 
+this Thursday. Asking us for 5 hours of time working on this challenge cost me greatly on other assignments. In addition,
+the write-up for this challenge was really confusing and vague in it's description of what it wanted us to do. After debating
+with team members on what this challenge required of us, we eventually came to this conculsion as you see now with what I and
+my team members have written. But we don't exactly know if this is what was asked for because of the nature of this horrible
+challenge 5 write up we were given. Personally, I would've much preferred just 1-2 hours of work required for each member of
+the team as no other challenege has taken me this long or been this aggrivating. This challenge also would've instantly been
+better had it been any other week, but alas, this week was chosen. In any case, I enjoyed the work I did for this challenge,
+but it produced a lot of stress and even now, is cutting into my study time for our class's first exam.
+
+Cade Damron's Rubric:
++15 for complete creation of all in-game models for all teams.
+	+10 For models of each unit for every team (Blocky, loy-poly models of each faction with at least one defining feature)
+	+5 For successful integration of models into Unreal Engine
++15 for complete animations of all in-game models
+	+10 Animations work properly in and out of Unreal (No glitchy textures of half-baked models in Unreal)
+	+5 Animations have some style and produce an attack fitting for the game of risk.
++10 for helping to code combat animations, combat phases, team interactions with combat, units on each tile, etc...
+	+5 for successful dice rolling, attacking phases, health calculations, etc...
+	+5 for successful unit amount calculations after combat, movement of units on map, map and model interaction, etc...
++5 for any extra coding bug fixes, proper commenting, proper formatting, etc...
+
+
+
+
+
