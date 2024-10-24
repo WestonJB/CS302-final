@@ -4,14 +4,21 @@
 #include <vector>
 #include "risk.h"
 
-Game::Game(std::vector<std::string> names)
-        : turn{static_cast<int>(std::rand() % names.size())} {
+// NOTE: ------- MEANS THAT A LINE IS ASSUMING THAT WE HAVE 6 CONTINENTS
+
+Game::Game(std::vector<std::string> names) : turn{-1} {
     // initialize the players
     for (int i = 0; i < names.size(); i++) players.push_back(Player(names[i]));
     // initialize the board
     continents.resize(6); // -------
     // do a bunch of work for the map here
     // initialize the drawPile here
+}
+
+std::vector<int> Game::rollDice(int numDice) const {
+    std::vector<int> rolls;
+    for (int i = 0; i < numDice; i++) rolls.push_back(std::rand() % 6 + 1);
+    return rolls;
 }
 
 int Game::getTurn() const { return turn; }

@@ -18,7 +18,7 @@ enum Color {
 	white,
 	black,
 	grey
-}; // more colors can be added if we want
+}; // more or less colors can be added if we want
 
 struct Territory {
 	std::string name;
@@ -28,12 +28,14 @@ struct Territory {
 	int infantry;
 	int calvary;
 	int artillery;
+	std::vector<Territory*> nearTerritories;
 };
 
 struct Continent {
 	std::string name;
 	Player *owner;
 	std::vector<Territory> territories;
+	std::vector<Continent*> nearContinents;
 };
 
 struct Card {
@@ -61,6 +63,7 @@ class Game {
 		std::vector<Card> drawPile;
 
 		Game(std::vector<std::string> names); // unfinished
+		std::vector<int> rollDice(int numDice) const;
 		int getTurn() const;
 		int captureTerritory(Player *player, Territory *territory);
 		void endTurn();

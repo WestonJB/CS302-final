@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
 	std::vector<std::string> playerNames = {"Bob", "Alex", "Joe", "Fred"};
 	Game game(playerNames);
 	for (int i = 0; i < playerNames.size(); i++) {
-		// ask the players for their colors
+		// ask the players for their colors [HERE]
 		// I'll make everyone choose red for sake of ease
 		game.players[game.getTurn()].color = red;
 	}
