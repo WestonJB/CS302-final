@@ -36,6 +36,7 @@ struct Continent {
 	Player *owner;
 	std::vector<Territory> territories;
 	std::vector<Continent*> nearContinents;
+	int newArmies;
 };
 
 struct Card {
@@ -45,30 +46,40 @@ struct Card {
 
 class Player {
 	public:
-		Color color;
 		std::vector<Territory*> territories;
 		std::vector<Continent*> continents;
 		std::vector<Card> cards;
+		int armies;
 		
-		Player (std::string playerName);
+		void setName(const std::string &newName);
 		std::string getName() const;
+		void setColor(Color newColor);
+		Color getColor() const;
 	private:
 		std::string name;
+		Color color;
 };
 
 class Game {
 	public:
-		std::vector<Player> players;
+		std::vector<Player*> players;
 		std::vector<Continent> continents;
 		std::vector<Card> drawPile;
 
-		Game(std::vector<std::string> names); // unfinished
+		Game(const std::vector<std::string> &names); // unfinished
+		~Game();
 		std::vector<int> rollDice(int numDice) const;
+		void setTurn();
 		int getTurn() const;
-		int captureTerritory(Player *player, Territory *territory);
 		void endTurn();
+		int addArmy(Territory *territory); // for setup
+		void giveArmies(Player *player); // for the start of a turn
+		void fortify(Territory *start, Territory *end, int armies); // unfinished
 	private:
 		int turn;
+		int terOcc; // territories occupied; used in the setup of the game
+		Player *findContOwner(Continent *continent) const;
+		int captureTerritory(Player *player, Territory *territory); // mostly finished
 };
 
 #endif
