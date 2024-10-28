@@ -6,26 +6,26 @@
 !/.git*
 
 # Do not ignore current project's `.uproject`.
-!/*.uproject
+!/Risk/*.uproject
 
 # Do not ignore source, config and plugins dirs.
-!/Source/**
-!/Config/**
-!/Plugins/**
+!/Risk/Source/**
+!/Risk/Config/**
+!/Risk/Plugins/**
 
 # Only allow .uasset and .umap files from /Content dir.
 # They're tracked by git-lfs, don't forget to track other
 # files if adding them here.
-!/Content/**/*.uasset
-!/Content/**/*.umap
+!/Risk/Content/**/*.uasset
+!/Risk/Content/**/*.umap
 
 # Allow any files from /RawContent dir.
 # Any file in /RawContent dir will be managed by git lfs.
-!/RawContent/**/*
+!/Risk/RawContent/**/*
 
 # Windows
-ehthumbs.db
-Thumbs.db
+Risk/ehthumbs.db
+Risk/Thumbs.db
 
 # Visual Studio
 .vs
