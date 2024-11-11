@@ -39,6 +39,7 @@ struct Continent {
 	int newArmies;
 };
 
+// note: wild cards have "wild" for both members
 struct Card {
 	std::string territory;
 	std::string army;
@@ -78,6 +79,9 @@ class Game {
 
 		int setFortify(Territory *start, Territory *end);
 		void fortify(const std::vector<char> &armies);
+
+		void giveCard();
+		int tradeCards(const std::vector<int> &cardsInd);
 	private:
 		int turn;
 		int terOcc; // territories occupied; used in the setup of the game
@@ -86,6 +90,7 @@ class Game {
 		int infantry; // pieces given to the player at the start of the turn
 		int calvary;
 		int artillery;
+		int trades;
 
 		Player *findContOwner(Continent *continent) const; // can this be a const parameter?
 		int captureTerritory(Player *player, Territory *territory); // mostly finished

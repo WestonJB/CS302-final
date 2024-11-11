@@ -9,7 +9,8 @@
 
 // Note: does not work for 2 players
 Game::Game(const std::vector<std::string> &names) : turn{-1}, terOcc{0},
-        fortOne{NULL}, fortTwo{NULL}, infantry{0}. calvary{0}, artillery{0} {
+        fortOne{NULL}, fortTwo{NULL}, infantry{0}. calvary{0}, artillery{0},
+        trades{0} {
     // initialize the players
     players.resize(names.size());
     for (int i = 0; i < names.size(); i++) {
@@ -121,9 +122,25 @@ void Game::fortify(const std::vector<char> &pieces) {
     }
 }
 
+void Game::giveCard() {
+    Player *player = players[turn];
+    player->cards.push_back(drawPile[drawPile.size() - 1]);
+    drawPile.pop_back();
+}
+
+int Game::tradeCards(const std::vector<int> &cardsInd) {
+    /* Return Key:
+     * 0: traded in cards
+     * 1: cards do not form a set that can be traded */
+    // check for a wild card
+    Player *player = players[turn];
+    if (player->cards[cardsInd[0]] == "wild" || player->cards[cardsInd[1]]
+            == "wild" || player->cards[cardsInd[2]] == "wild")
+}
+
 // returns NULL if there is no owner
 Player *Game::findContOwner(Continent *continent) const {
-    Player *owner = continent->territories.begin()->owner;
+    Player *owner = continent->territories[0].owner;
     for (auto i : continent->territories) {
         if (i.owner != owner) return NULL;
     }
