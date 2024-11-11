@@ -1,10 +1,10 @@
 #include <string>
 #include "risk.h"
 
-void Game::setName(const std::string &newName) { name = newName; }
+void Player::setName(const std::string &newName) { name = newName; }
 
 std::string Player::getName() const { return name; }
 
-void Game::setColor(Color newColor) { color = newColor; }
+void Player::setColor(Color newColor) { color = newColor; }
 
-Color Game::getColor() const { return color; }
+Color Player::getColor() const { return color; }

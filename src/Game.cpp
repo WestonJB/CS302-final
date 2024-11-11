@@ -9,8 +9,7 @@
 
 // Note: does not work for 2 players
 Game::Game(const std::vector<std::string> &names) : turn{-1}, terOcc{0},
-        fortOne{NULL}, fortTwo{NULL}, infantry{0}. calvary{0}, artillery{0},
-        trades{0} {
+        fortOne{NULL}, fortTwo{NULL}, trades{0}, alreadyTraded{false} {
     // initialize the players
     players.resize(names.size());
     for (int i = 0; i < names.size(); i++) {
@@ -39,6 +38,7 @@ void Game::endTurn() {
     turn = (turn + 1) % players.size();
     fortOne = NULL;
     fortTwo = NULL;
+    alreadyTraded = false;
     // should already be 0, but if some error stops that, this resets it
     infantry = 0;
 	calvary = 0;
@@ -75,8 +75,8 @@ void Game::giveArmies() {
     Player *player = players[turn];
     int newArmies = player->territories.size() / 3;
     for (auto i : player->continents) newArmies += i->newArmies;
-    if (3 < newArmies) infantry += newArmies;
-    else infantry += 3;
+    if (3 < newArmies) player->armies += newArmies;
+    else player->armies += 3;
 }
 
 int Game::setFortify(Territory *start, Territory *end) {
@@ -132,10 +132,39 @@ int Game::tradeCards(const std::vector<int> &cardsInd) {
     /* Return Key:
      * 0: traded in cards
      * 1: cards do not form a set that can be traded */
-    // check for a wild card
     Player *player = players[turn];
-    if (player->cards[cardsInd[0]] == "wild" || player->cards[cardsInd[1]]
-            == "wild" || player->cards[cardsInd[2]] == "wild")
+    if (!validTrade(cardsInd)) return 1;
+    // if they own the territory, then 2 extra armies are placed there
+    // also must consider wild + 2 different owned territories
+    // first, find if they own any territories
+    for (int i = 0; i < 3; i++) {
+        ;
+    }
+    // give armies for the trade
+    switch (trades) {
+        case 0:
+            player->armies += 4;
+            break;
+        case 1:
+            player->armies += 6;
+            break;
+        case 2:
+            player->armies += 8;
+            break;
+        case 3:
+            player->armies += 10;
+            break;
+        case 4:
+            player->armies += 12;
+            break;
+        case 5:
+            player->armies += 15;
+            break;
+        default:
+            player->armies += 5 * trades - 10;
+            break;
+    }
+    return 0;
 }
 
 // returns NULL if there is no owner
@@ -178,4 +207,29 @@ int Game::captureTerritory(Player *player, Territory *territory) {
         return 1;
     }
     return 0;
+}
+
+bool Game::validTrade(const std::vector<int> &cardsInd) const {
+    // check for a wild card, matching armies, or disjoint armies
+    std::string card1 = player->cards[cardsInd[0]].army;
+    std::string card2 = player->cards[cardsInd[1]].army;
+    std::string card3 = player->cards[cardsInd[2]].army;
+    if ((card1 != "wild" && card2 != "wild" && card3 != "wild") &&
+            (card1 != card2 || card1 != card3 || card2 != card3) &&
+            (card1 == card2 || card1 == card3 || card2 == card3)) {
+        return false;
+    }
+    return true;
+}
+
+Territory *findTerritory(const std::string &name) const {
+    for (const auto &cont : continents) {
+        for (int terr = 0; terr < cont.territories.size(); terr++) {
+            if (cont.territories[i].name == name) {
+                return &(cont.territories[i]);
+            }
+        }
+    }
+    // should never happen since a card should have a valid territory on it
+    return NULL;
 }

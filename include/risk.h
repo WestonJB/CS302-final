@@ -50,6 +50,7 @@ class Player {
 		std::vector<Territory*> territories;
 		std::vector<Continent*> continents;
 		std::vector<Card> cards;
+		int armies;
 		
 		void setName(const std::string &newName);
 		std::string getName() const;
@@ -81,7 +82,7 @@ class Game {
 		void fortify(const std::vector<char> &armies);
 
 		void giveCard();
-		int tradeCards(const std::vector<int> &cardsInd);
+		int tradeCards(const std::vector<int> &cardsInd); // unfinished
 	private:
 		int turn;
 		int terOcc; // territories occupied; used in the setup of the game
@@ -91,9 +92,12 @@ class Game {
 		int calvary;
 		int artillery;
 		int trades;
+		bool alreadyTraded;
 
 		Player *findContOwner(Continent *continent) const; // can this be a const parameter?
 		int captureTerritory(Player *player, Territory *territory); // mostly finished
+		bool validTrade(const std::vector<int> &cardsInd) const;
+		Territory *findTerritory(const std::string &name) const;
 };
 
 #endif
