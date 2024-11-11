@@ -8,7 +8,8 @@
 //       +++++++ MEANS THAT A LINE IS ASSUMING THAT WE HAVE 42 TERRITORIES
 
 // Note: does not work for 2 players
-Game::Game(const std::vector<std::string> &names) : turn{-1}, terOcc{0} {
+Game::Game(const std::vector<std::string> &names) : turn{-1}, terOcc{0},
+        fortOne{NULL}, fortTwo{NULL}, infantry{0}. calvary{0}, artillery{0} {
     // initialize the players
     players.resize(names.size());
     for (int i = 0; i < names.size(); i++) {
@@ -21,11 +22,7 @@ Game::Game(const std::vector<std::string> &names) : turn{-1}, terOcc{0} {
     // do a bunch of work for the map here
     // initialize the drawPile here
 }
-Game::~Game() {
-    for (auto it = player.begin(); it != player.end(); it++) {
-        delete (*it);
-    }
-}
+Game::~Game() { for (auto i : players) delete i; }
 
 std::vector<int> Game::rollDice(int numDice) const {
     std::vector<int> rolls;
@@ -37,9 +34,17 @@ void Game::setTurn(int newTurn) { turn = newTurn; }
 
 int Game::getTurn() const { return turn; }
 
-void Game::endTurn() { turn = (turn + 1) % players.size(); }
+void Game::endTurn() {
+    turn = (turn + 1) % players.size();
+    fortOne = NULL;
+    fortTwo = NULL;
+    // should already be 0, but if some error stops that, this resets it
+    infantry = 0;
+	calvary = 0;
+	artillery = 0;
+}
 
-int Game::addArmy(Player *player, Territory *territory) {
+int Game::addArmy(Territory *territory) {
     /* Return Key:
      * 0: added a piece to the territory
      * 1: error, must add piece to unoccupied territory
@@ -65,39 +70,62 @@ int Game::addArmy(Player *player, Territory *territory) {
     return 0;
 }
 
-void Game::giveArmies(Player *player) {
+void Game::giveArmies() {
     Player *player = players[turn];
     int newArmies = player->territories.size() / 3;
-    for (auto it = player->continents.begin(); it != player->continents.end();
-            it++) {
-        newArmies += it->newArmies;
-    }
-    if (3 < newArmies) player->armies += newArmies;
-    else player->armies += 3;
+    for (auto i : player->continents) newArmies += i->newArmies;
+    if (3 < newArmies) infantry += newArmies;
+    else infantry += 3;
 }
 
-void Game::fortify(Territory *start, Territory *end, int armies) {
+int Game::setFortify(Territory *start, Territory *end) {
     /* Return Key:
-     * 0: moved armies from start to end
-     * 1: error, non-positive number of armies
-     * 2: error, do not own starting territory
-     * 3: error, do not own ending territory
-     * 4: error, can not move that many armies into ending territory */
+     * 0: set start to end territories for fortify
+     * 1: error, do not own starting territory
+     * 2: error, do not own ending territory */
     Player *player = players[turn];
-    if (armies < 1) return 1;
-    if (start->owner != player) return 2;
-    if (end->owner != player) return 3;
-    if (start->armies - armies < 1) return 4;
-    // do something here
+    if (start->owner != player) return 1;
+    if (end->owner != player) return 2;
+    fortOne = start;
+    fortTwo = end;
     return 0;
+}
+
+void Game::fortify(const std::vector<char> &pieces) {
+    int value;
+    for (int i = 0; i < pieces.size(); pieces++) {
+        // find the value of the piece and change the armies on territories
+        switch (pieces) {
+            case 'i':
+                value = 1;
+                fortOne->infantry -= 1;
+                fortTwo->infantry += 1;
+                break;
+            case 'c':
+                value = 5;
+                fortOne->calvary -= 1;
+                fortTwo->calvary += 1;
+                break;
+            case 'a':
+                value = 10;
+                fortOne->artillery -= 1;
+                fortTwo->artillery += 1;
+                break;
+            // this should never run
+            default:
+                value = 1;
+                break;
+        }
+        fortOne->armies -= value;
+        fortTwo->armies += value;
+    }
 }
 
 // returns NULL if there is no owner
 Player *Game::findContOwner(Continent *continent) const {
     Player *owner = continent->territories.begin()->owner;
-    for (auto it = continent->territories.begin() + 1;
-            it != continent->territories.end(); it++) {
-        if (it->owner != owner) return NULL;
+    for (auto i : continent->territories) {
+        if (i.owner != owner) return NULL;
     }
     return owner;
 }
@@ -129,8 +157,8 @@ int Game::captureTerritory(Player *player, Territory *territory) {
         territory->continent->owner = player;
         player->continents.push_back(territory->continent);
         // check if they have every continent
-        if (player->continents.size() == 6) return 1; // -------
-        return 2;
+        if (player->continents.size() == 6) return 2; // -------
+        return 1;
     }
     return 0;
 }

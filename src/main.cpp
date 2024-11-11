@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
 		// ask the players for their colors
 		// I'll make everyone choose red for sake of ease
 		game.players[game.getTurn()].color = red;
+		game.endTurn();
 	}
 	// make everyone roll a die, choose the highest die for the first person
 	// if there is a tie, make the people with the tie roll again
