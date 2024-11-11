@@ -88,9 +88,6 @@ class Game {
 		int terOcc; // territories occupied; used in the setup of the game
 		Territory *fortOne; // territories used in fortify
 		Territory *fortTwo;
-		int infantry; // pieces given to the player at the start of the turn
-		int calvary;
-		int artillery;
 		int trades;
 		bool alreadyTraded;
 
