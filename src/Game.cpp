@@ -10,7 +10,7 @@
 //       +++++++ MEANS THAT A LINE IS ASSUMING THAT WE HAVE 42 TERRITORIES
 
 // Note: does not work for 2 players
-Game::Game(const std::vector<std::string> &names) : turn{-1}, terOcc{0},
+Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
         fortOne{NULL}, fortTwo{NULL}, trades{0}, alreadyTraded{false} {
     // initialize the players
     players.resize(names.size());
@@ -56,10 +56,10 @@ void Game::endTurn() {
 int Game::addArmy(Territory *territory) {
     /* Return Key:
      * 0: added a piece to the territory
-     * 1: error, must add piece to unoccupied territory
+     * 1: error, must add piece to unoccupied territory (start of game)
      * 2: error, must add piece to one's own territory */
     Player *player = players[turn];
-    if (terOcc < 42) { // +++++++
+    if (terrOcc < 42) { // +++++++
         if (territory->owner != NULL) return 1;
         territory->owner = player;
         player->territories.push_back(territory);
@@ -70,6 +70,7 @@ int Game::addArmy(Territory *territory) {
             territory->continent->owner = player;
             player->continents.push_back(territory->continent);
         }
+        ++terrOcc;
     } else {
         if (territory->owner != player) return 2;
         ++territory->armies;
@@ -145,8 +146,10 @@ int Game::tradeCards(const std::vector<int> &cardsInd) {
     // if they own the territory, then 2 extra armies are placed there
     // also must consider wild + 2 different owned territories
     // first, find if they own any territories
-    for (int i = 0; i < 3; i++) {
-        ;
+    if (!alreadyTraded) {
+        for (int i = 0; i < 3; i++) {
+            ;
+        }
     }
     // give armies for the trade
     switch (trades) {

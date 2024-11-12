@@ -76,7 +76,6 @@ class Game {
 
 		int addArmy(Territory *territory);
 		void giveArmies(); // for the start of a turn
-		// note: need to make a function to trade infantry
 
 		int setFortify(Territory *start, Territory *end);
 		void fortify(const std::vector<char> &armies);
@@ -85,7 +84,7 @@ class Game {
 		int tradeCards(const std::vector<int> &cardsInd); // unfinished
 	private:
 		int turn;
-		int terOcc;         // territories occupied; used in the setup of the game
+		int terrOcc;         // territories occupied; used in the setup of the game
 		Territory *fortOne; // territories used in fortify
 		Territory *fortTwo;
 		int trades;
