@@ -2,7 +2,9 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include "risk.h"
+#include "../include/risk.h"
+
+#include <typeinfo>
 
 // NOTE: ------- MEANS THAT A LINE IS ASSUMING THAT WE HAVE 6 CONTINENTS
 //       +++++++ MEANS THAT A LINE IS ASSUMING THAT WE HAVE 42 TERRITORIES
@@ -22,7 +24,17 @@ Game::Game(const std::vector<std::string> &names) : turn{-1}, terOcc{0},
     // do a bunch of work for the map here
     // initialize the drawPile here
 }
-Game::~Game() { for (auto i : players) delete i; }
+Game::~Game() {
+    for (auto i : players) {
+        for (auto j : i->cards) delete j;
+        delete i;
+    }
+    for (auto i : continents) {
+        for (auto j : i->territories) delete j;
+        delete i;
+    }
+
+}
 
 std::vector<int> Game::rollDice(int numDice) const {
     std::vector<int> rolls;
@@ -39,10 +51,6 @@ void Game::endTurn() {
     fortOne = NULL;
     fortTwo = NULL;
     alreadyTraded = false;
-    // should already be 0, but if some error stops that, this resets it
-    infantry = 0;
-	calvary = 0;
-	artillery = 0;
 }
 
 int Game::addArmy(Territory *territory) {
@@ -74,7 +82,7 @@ int Game::addArmy(Territory *territory) {
 void Game::giveArmies() {
     Player *player = players[turn];
     int newArmies = player->territories.size() / 3;
-    for (auto i : player->continents) newArmies += i->newArmies;
+    for (Continent *i : player->continents) newArmies += i->newArmies;
     if (3 < newArmies) player->armies += newArmies;
     else player->armies += 3;
 }
@@ -94,9 +102,9 @@ int Game::setFortify(Territory *start, Territory *end) {
 
 void Game::fortify(const std::vector<char> &pieces) {
     int value;
-    for (int i = 0; i < pieces.size(); pieces++) {
+    for (int i : pieces) {
         // find the value of the piece and change the armies on territories
-        switch (pieces) {
+        switch (i) {
             case 'i':
                 value = 1;
                 fortOne->infantry -= 1;
@@ -133,7 +141,7 @@ int Game::tradeCards(const std::vector<int> &cardsInd) {
      * 0: traded in cards
      * 1: cards do not form a set that can be traded */
     Player *player = players[turn];
-    if (!validTrade(cardsInd)) return 1;
+    if (isValidTrade(cardsInd)) return 1;
     // if they own the territory, then 2 extra armies are placed there
     // also must consider wild + 2 different owned territories
     // first, find if they own any territories
@@ -168,20 +176,21 @@ int Game::tradeCards(const std::vector<int> &cardsInd) {
 }
 
 // returns NULL if there is no owner
-Player *Game::findContOwner(Continent *continent) const {
-    Player *owner = continent->territories[0].owner;
-    for (auto i : continent->territories) {
-        if (i.owner != owner) return NULL;
+Player *Game::findContOwner(const Continent *continent) const {
+    Player *owner = continent->territories[0]->owner;
+    for (Territory *i : continent->territories) {
+        if (i->owner != owner) return NULL;
     }
     return owner;
 }
 
 // NOTE: needs to implement cards and eliminating players
-int Game::captureTerritory(Player *player, Territory *territory) {
+int Game::captureTerritory(Territory *territory) {
     /* Return Key:
      * 0: normal capture
      * 1: captured continent
      * 2: captured world (game over) */
+    Player *player = players[turn];
     Player *prevOwner = territory->owner;
     // give the new player the territory
     territory->owner = player;
@@ -199,7 +208,7 @@ int Game::captureTerritory(Player *player, Territory *territory) {
         }
     }
     // if the player now owns the continent, add ownership
-    if (findContOwner(continent) == player) {
+    if (findContOwner(territory->continent) == player) {
         territory->continent->owner = player;
         player->continents.push_back(territory->continent);
         // check if they have every continent
@@ -209,11 +218,12 @@ int Game::captureTerritory(Player *player, Territory *territory) {
     return 0;
 }
 
-bool Game::validTrade(const std::vector<int> &cardsInd) const {
+bool Game::isValidTrade(const std::vector<int> &cardsInd) const {
     // check for a wild card, matching armies, or disjoint armies
-    std::string card1 = player->cards[cardsInd[0]].army;
-    std::string card2 = player->cards[cardsInd[1]].army;
-    std::string card3 = player->cards[cardsInd[2]].army;
+    Player *player = players[turn];
+    std::string card1 = player->cards[cardsInd[0]]->army;
+    std::string card2 = player->cards[cardsInd[1]]->army;
+    std::string card3 = player->cards[cardsInd[2]]->army;
     if ((card1 != "wild" && card2 != "wild" && card3 != "wild") &&
             (card1 != card2 || card1 != card3 || card2 != card3) &&
             (card1 == card2 || card1 == card3 || card2 == card3)) {
@@ -222,12 +232,10 @@ bool Game::validTrade(const std::vector<int> &cardsInd) const {
     return true;
 }
 
-Territory *findTerritory(const std::string &name) const {
-    for (const auto &cont : continents) {
-        for (int terr = 0; terr < cont.territories.size(); terr++) {
-            if (cont.territories[i].name == name) {
-                return &(cont.territories[i]);
-            }
+Territory* Game::findTerritory(const std::string &name) const {
+    for (Continent *cont : continents) {
+        for (Territory *terr : cont->territories) {
+            if (terr->name == name) return terr;
         }
     }
     // should never happen since a card should have a valid territory on it

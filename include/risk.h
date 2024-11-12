@@ -34,7 +34,7 @@ struct Territory {
 struct Continent {
 	std::string name;
 	Player *owner;
-	std::vector<Territory> territories;
+	std::vector<Territory*> territories;
 	std::vector<Continent*> nearContinents;
 	int newArmies;
 };
@@ -49,7 +49,7 @@ class Player {
 	public:
 		std::vector<Territory*> territories;
 		std::vector<Continent*> continents;
-		std::vector<Card> cards;
+		std::vector<Card*> cards;
 		int armies;
 		
 		void setName(const std::string &newName);
@@ -64,13 +64,13 @@ class Player {
 class Game {
 	public:
 		std::vector<Player*> players;
-		std::vector<Continent> continents;
-		std::vector<Card> drawPile;
+		std::vector<Continent*> continents;
+		std::vector<Card*> drawPile;
 
 		Game(const std::vector<std::string> &names); // unfinished
 		~Game();
 		std::vector<int> rollDice(int numDice) const;
-		void setTurn();
+		void setTurn(int newTurn);
 		int getTurn() const;
 		void endTurn();
 
@@ -85,15 +85,15 @@ class Game {
 		int tradeCards(const std::vector<int> &cardsInd); // unfinished
 	private:
 		int turn;
-		int terOcc; // territories occupied; used in the setup of the game
+		int terOcc;         // territories occupied; used in the setup of the game
 		Territory *fortOne; // territories used in fortify
 		Territory *fortTwo;
 		int trades;
-		bool alreadyTraded;
+		bool alreadyTraded; // for trading cards
 
-		Player *findContOwner(Continent *continent) const; // can this be a const parameter?
-		int captureTerritory(Player *player, Territory *territory); // mostly finished
-		bool validTrade(const std::vector<int> &cardsInd) const;
+		Player *findContOwner(const Continent *continent) const; // can this be a const parameter?
+		int captureTerritory(Territory *territory); // mostly finished
+		bool isValidTrade(const std::vector<int> &cardsInd) const;
 		Territory *findTerritory(const std::string &name) const;
 };
 

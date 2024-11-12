@@ -1,5 +1,5 @@
 #include <string>
-#include "risk.h"
+#include "../include/risk.h"
 
 void Player::setName(const std::string &newName) { name = newName; }
 
