@@ -78,6 +78,9 @@ class Game {
 		void giveArmies(); // for the start of a turn
 		int tradeArmies(Territory *territory, char startType, char endType);
 
+		int setAttack(Territory *start, Territory *end);
+		void attack(int playerOneDice, int playerTwoDice); // unfinished
+
 		int setFortify(Territory *start, Territory *end);
 		void fortify(const std::vector<char> &armies);
 
@@ -86,15 +89,17 @@ class Game {
 	private:
 		int turn;
 		int terrOcc;         // territories occupied; used in setup of the game
+
 		std::vector<Card*> drawPile;
 		std::vector<Card*> discardPile;
-		Territory *fortOne;  // territories used in fortify
-		Territory *fortTwo;
+		Territory *terrOne;  // territories used in fortifying and attacking
+		Territory *terrTwo;
 		int trades;
-		bool alreadyTraded;  // for trading cards
+		bool gotTradeBonus;  // for trading cards
 		bool captured;       // for getting cards
 
 		Player *findContOwner(const Continent *continent) const;
+		bool areTerritoriesConnected(Territory *start, Territory *end) const;
 		int captureTerritory(Territory *territory);
 		bool isValidTrade(const std::vector<int> &cardsInd) const;
 		Territory *findTerritory(const std::string &name) const;

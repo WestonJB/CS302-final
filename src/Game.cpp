@@ -11,7 +11,7 @@
 
 // Note: does not work for 2 players
 Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
-        fortOne{NULL}, fortTwo{NULL}, trades{0}, alreadyTraded{false},
+        terrOne{NULL}, terrTwo{NULL}, trades{0}, gotTradeBonus{false},
         captured{true} {
     // initialize the players
     players.resize(names.size());
@@ -49,9 +49,9 @@ void Game::setTurn(int newTurn) { turn = newTurn; }
 int Game::getTurn() const { return turn; }
 
 void Game::endTurn() {
-    fortOne = NULL;
-    fortTwo = NULL;
-    alreadyTraded = false;
+    terrOne = NULL;
+    terrTwo = NULL;
+    gotTradeBonus = false;
     if (captured) {
         giveCard();
         captured = false;
@@ -97,9 +97,9 @@ void Game::giveArmies() {
 int Game::tradeArmies(Territory *territory, char startType, char endType) {
     /* Return Key:
      * 0: traded armies
-     * 1: do not own territory
-     * 2: trading pieces for the same pieces (startType == endType)
-     * 3: do not own enough pieces to trade */
+     * 1: error, do not own territory
+     * 2: error, trading pieces for the same pieces (startType == endType)
+     * 3: error, do not own enough pieces to trade */
     Player *player = players[turn];
     if (territory->owner != player) return 1;
     if (startType == endType) return 2;
@@ -146,16 +146,46 @@ int Game::tradeArmies(Territory *territory, char startType, char endType) {
     return 0;
 }
 
+int Game::setAttack(Territory *start, Territory *end) {
+    /* Return Key:
+     * 0: set start and end territories for attacking
+     * 1: error, do not own starting territory
+     * 2: error, player owns ending territory
+     * 3: error, territories are not connected
+     * 4: error, do not have enough armies on starting territory */
+    Player *player = players[turn];
+    if (start->owner != player) return 1;
+    if (end->owner == player) return 2;
+    if (!areTerritoriesConnected(start, end)) return 3;
+    if (start->armies < 2) return 4;
+    terrOne = start;
+    terrTwo = end;
+    return 0;
+}
+
+int attack(int playerOneDice, int playerTwoDice) {
+    /* Return Key:
+     * 0: battle happened
+     * 1: error, playerOneDice is invalid
+     * 2: error, playerTwoDice is invalid */
+    if (playerOneDice < 1 || playerOneDice > 3) return 1;
+    if (playerOneDice < 1 || playerOneDice > 2) return 2;
+    // attack here
+    return 0;
+}
+
 int Game::setFortify(Territory *start, Territory *end) {
     /* Return Key:
-     * 0: set start to end territories for fortify
+     * 0: set start and end territories for fortify
      * 1: error, do not own starting territory
-     * 2: error, do not own ending territory */
+     * 2: error, do not own ending territory
+     * 3: error, territories are not connected */
     Player *player = players[turn];
     if (start->owner != player) return 1;
     if (end->owner != player) return 2;
-    fortOne = start;
-    fortTwo = end;
+    if (!areTerritoriesConnected(start, end)) return 3;
+    terrOne = start;
+    terrTwo = end;
     return 0;
 }
 
@@ -166,26 +196,26 @@ void Game::fortify(const std::vector<char> &pieces) {
         switch (i) {
             case 'i':
                 value = 1;
-                fortOne->infantry -= 1;
-                fortTwo->infantry += 1;
+                terrOne->infantry -= 1;
+                terrTwo->infantry += 1;
                 break;
             case 'c':
                 value = 5;
-                fortOne->calvary -= 1;
-                fortTwo->calvary += 1;
+                terrOne->calvary -= 1;
+                terrTwo->calvary += 1;
                 break;
             case 'a':
                 value = 10;
-                fortOne->artillery -= 1;
-                fortTwo->artillery += 1;
+                terrOne->artillery -= 1;
+                terrTwo->artillery += 1;
                 break;
             // this should never run
             default:
                 value = 1;
                 break;
         }
-        fortOne->armies -= value;
-        fortTwo->armies += value;
+        terrOne->armies -= value;
+        terrTwo->armies += value;
     }
 }
 
@@ -212,18 +242,18 @@ void Game::giveCard() {
 int Game::tradeCards(const std::vector<int> &cardsInd) {
     /* Return Key:
      * 0: traded in cards
-     * 1: cards do not form a set that can be traded */
+     * 1: error, cards do not form a set that can be traded */
     Player *player = players[turn];
     if (!isValidTrade(cardsInd)) return 1;
     // if they own the territory, then 2 extra armies are placed there
     // however, this happens once per turn
-    if (!alreadyTraded) {
-        alreadyTraded = true;
+    if (!gotTradeBonus) {
         for (int i = 0; i < 3; i++) {
             Territory *cardTerr = findTerritory(player->cards[cardsInd[i]]
                 ->territory);
             if (cardTerr == NULL) continue; // wild card; has no territory
             if (cardTerr->owner == player) {
+                gotTradeBonus = true;
                 cardTerr->armies += 2;
                 cardTerr->infantry += 2;
                 break;
@@ -274,6 +304,13 @@ Player *Game::findContOwner(const Continent *continent) const {
         if (i->owner != owner) return NULL;
     }
     return owner;
+}
+
+bool Game::areTerritoriesConnected(Territory *start, Territory *end) const {
+    for (Territory *terr : start->nearTerritories) {
+        if (terr == end) return true;
+    }
+    return false;
 }
 
 int Game::captureTerritory(Territory *territory) {
