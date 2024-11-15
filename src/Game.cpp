@@ -11,7 +11,8 @@
 
 // Note: does not work for 2 players
 Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
-        fortOne{NULL}, fortTwo{NULL}, trades{0}, alreadyTraded{false} {
+        fortOne{NULL}, fortTwo{NULL}, trades{0}, alreadyTraded{false},
+        captured{true} {
     // initialize the players
     players.resize(names.size());
     for (int i = 0; i < names.size(); i++) {
@@ -47,10 +48,14 @@ void Game::setTurn(int newTurn) { turn = newTurn; }
 int Game::getTurn() const { return turn; }
 
 void Game::endTurn() {
-    turn = (turn + 1) % players.size();
     fortOne = NULL;
     fortTwo = NULL;
     alreadyTraded = false;
+    if (captured) {
+        giveCard();
+        captured = false;
+    }
+    turn = (turn + 1) % players.size();
 }
 
 int Game::addArmy(Territory *territory) {
@@ -86,6 +91,58 @@ void Game::giveArmies() {
     for (Continent *i : player->continents) newArmies += i->newArmies;
     if (3 < newArmies) player->armies += newArmies;
     else player->armies += 3;
+}
+
+int Game::tradeArmies(Territory *territory, char startType, char endType) {
+    /* Return Key:
+     * 0: traded armies
+     * 1: do not own territory
+     * 2: trading pieces for the same pieces (startType == endType)
+     * 3: do not own enough pieces to trade */
+    Player *player = players[turn];
+    if (territory->owner != player) return 1;
+    if (startType == endType) return 2;
+    switch (startType) {
+        case 'i':
+            switch (endType) {
+                case 'c':
+                    if (territory->infantry < 5) return 3;
+                    territory->infantry -= 5;
+                    ++territory->calvary;
+                    break;
+                case 'a':
+                    if (territory->infantry < 10) return 3;
+                    territory->infantry -= 10;
+                    ++territory->artillery;
+                    break;
+            }
+            break;
+        case 'c':
+            switch (endType) {
+                case 'i':
+                    --territory->calvary;
+                    territory->infantry += 5;
+                    break;
+                case 'a':
+                    if (territory->calvary < 2) return 3;
+                    territory->calvary -= 2;
+                    ++territory->artillery;
+                    break;
+            }
+            break;
+        case 'a':
+            switch (endType) {
+                --territory->artillery;
+                case 'i':
+                    territory->infantry += 10;
+                    break;
+                case 'c':
+                    territory->calvary += 2;
+                    break;
+            }
+            break;
+    }
+    return 0;
 }
 
 int Game::setFortify(Territory *start, Territory *end) {
@@ -132,8 +189,7 @@ void Game::fortify(const std::vector<char> &pieces) {
 }
 
 void Game::giveCard() {
-    Player *player = players[turn];
-    player->cards.push_back(drawPile[drawPile.size() - 1]);
+    players[turn]->cards.push_back(drawPile[drawPile.size() - 1]);
     drawPile.pop_back();
 }
 
@@ -142,13 +198,20 @@ int Game::tradeCards(const std::vector<int> &cardsInd) {
      * 0: traded in cards
      * 1: cards do not form a set that can be traded */
     Player *player = players[turn];
-    if (isValidTrade(cardsInd)) return 1;
+    if (!isValidTrade(cardsInd)) return 1;
     // if they own the territory, then 2 extra armies are placed there
-    // also must consider wild + 2 different owned territories
-    // first, find if they own any territories
+    // however, this happens once per turn
     if (!alreadyTraded) {
+        alreadyTraded = true;
         for (int i = 0; i < 3; i++) {
-            ;
+            Territory *cardTerr = findTerritory(player->cards[cardsInd[i]]
+                ->territory);
+            if (cardTerr == NULL) continue; // wild card; has no territory
+            if (cardTerr->owner == player) {
+                cardTerr->armies += 2;
+                cardTerr->infantry += 2;
+                break;
+            }
         }
     }
     // give armies for the trade
@@ -187,28 +250,28 @@ Player *Game::findContOwner(const Continent *continent) const {
     return owner;
 }
 
-// NOTE: needs to implement cards and eliminating players
 int Game::captureTerritory(Territory *territory) {
     /* Return Key:
      * 0: normal capture
      * 1: captured continent
-     * 2: captured world (game over) */
+     * 2: captured world (game over) 
+     * 10: normal capture and eliminated a player
+     * 11: captured continent and eliminated a player */
+    captured = true;
+    int returnType = 0;
     Player *player = players[turn];
     Player *prevOwner = territory->owner;
-    // give the new player the territory
+    // give the new player the territory and erase the old player's ownership
     territory->owner = player;
     player->territories.push_back(territory);
-    // erase the old player's ownership entirely
-    if (prevOwner != NULL) {
-        prevOwner->territories.erase(std::find(prevOwner->territories.begin(),
-            prevOwner->territories.end(), territory));
-        // if the old player owns the continent, remove their ownership there
-        if (territory->continent->owner == prevOwner) {
-            territory->continent->owner = NULL;
-            prevOwner->continents.erase
-                (std::find(prevOwner->continents.begin(),
-                prevOwner->continents.end(), territory->continent));
-        }
+    prevOwner->territories.erase(std::find(prevOwner->territories.begin(),
+        prevOwner->territories.end(), territory));
+    // if the old player owns the continent, remove their ownership there
+    if (territory->continent->owner == prevOwner) {
+        territory->continent->owner = NULL;
+        prevOwner->continents.erase
+            (std::find(prevOwner->continents.begin(),
+            prevOwner->continents.end(), territory->continent));
     }
     // if the player now owns the continent, add ownership
     if (findContOwner(territory->continent) == player) {
@@ -216,9 +279,20 @@ int Game::captureTerritory(Territory *territory) {
         player->continents.push_back(territory->continent);
         // check if they have every continent
         if (player->continents.size() == 6) return 2; // -------
-        return 1;
+        returnType = 1;
+    } else {
+        returnType = 0;
     }
-    return 0;
+    // if the old player is dead, erase him from the game and give a card
+    if (prevOwner->territories.size() > 0) {
+        return returnType;
+    } else {
+        // remove the player from the player list
+        delete prevOwner;
+        players.erase(std::find(players.begin(), players.end(), prevOwner));
+        if (players[turn] != player) --turn;
+        return returnType + 10;
+    }
 }
 
 bool Game::isValidTrade(const std::vector<int> &cardsInd) const {
@@ -241,6 +315,6 @@ Territory* Game::findTerritory(const std::string &name) const {
             if (terr->name == name) return terr;
         }
     }
-    // should never happen since a card should have a valid territory on it
+    // should only happen for wild cards
     return NULL;
 }

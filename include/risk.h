@@ -61,6 +61,7 @@ class Player {
 		Color color;
 };
 
+// note: we need to determine when they NEED to trade cards
 class Game {
 	public:
 		std::vector<Player*> players;
@@ -76,22 +77,24 @@ class Game {
 
 		int addArmy(Territory *territory);
 		void giveArmies(); // for the start of a turn
+		int tradeArmies(Territory *territory, char startType, char endType);
 
 		int setFortify(Territory *start, Territory *end);
 		void fortify(const std::vector<char> &armies);
 
 		void giveCard();
-		int tradeCards(const std::vector<int> &cardsInd); // unfinished
+		int tradeCards(const std::vector<int> &cardsInd);
 	private:
 		int turn;
-		int terrOcc;         // territories occupied; used in the setup of the game
-		Territory *fortOne; // territories used in fortify
+		int terrOcc;         // territories occupied; used in setup of the game
+		Territory *fortOne;  // territories used in fortify
 		Territory *fortTwo;
 		int trades;
-		bool alreadyTraded; // for trading cards
+		bool alreadyTraded;  // for trading cards
+		bool captured;       // for getting cards
 
-		Player *findContOwner(const Continent *continent) const; // can this be a const parameter?
-		int captureTerritory(Territory *territory); // mostly finished
+		Player *findContOwner(const Continent *continent) const;
+		int captureTerritory(Territory *territory);
 		bool isValidTrade(const std::vector<int> &cardsInd) const;
 		Territory *findTerritory(const std::string &name) const;
 };
