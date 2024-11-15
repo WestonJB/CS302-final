@@ -66,7 +66,6 @@ class Game {
 	public:
 		std::vector<Player*> players;
 		std::vector<Continent*> continents;
-		std::vector<Card*> drawPile;
 
 		Game(const std::vector<std::string> &names); // unfinished
 		~Game();
@@ -87,6 +86,8 @@ class Game {
 	private:
 		int turn;
 		int terrOcc;         // territories occupied; used in setup of the game
+		std::vector<Card*> drawPile;
+		std::vector<Card*> discardPile;
 		Territory *fortOne;  // territories used in fortify
 		Territory *fortTwo;
 		int trades;

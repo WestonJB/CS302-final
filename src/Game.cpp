@@ -34,7 +34,8 @@ Game::~Game() {
         for (auto j : i->territories) delete j;
         delete i;
     }
-
+    for (auto i : drawPile) delete i;
+    for (auto i : discardPile) delete i;
 }
 
 std::vector<int> Game::rollDice(int numDice) const {
@@ -189,8 +190,23 @@ void Game::fortify(const std::vector<char> &pieces) {
 }
 
 void Game::giveCard() {
+    // give the player a card and remove it from the drawPile
     players[turn]->cards.push_back(drawPile[drawPile.size() - 1]);
     drawPile.pop_back();
+    // if the deck is empty, make the discardPile become the drawPile
+    if (drawPile.size() == 0) {
+        drawPile = discardPile;
+        discardPile.clear();
+        // shuffle
+        int temp;
+        Card *temp2;
+        for (int i = 0; i < drawPile.size() - 1; i++) {
+            temp = std::rand() % (drawPile.size() - i) + i;
+            temp2 = drawPile[i];
+            drawPile[i] = drawPile[temp];
+            drawPile[temp] = temp2;
+        }
+    }
 }
 
 int Game::tradeCards(const std::vector<int> &cardsInd) {
@@ -238,6 +254,16 @@ int Game::tradeCards(const std::vector<int> &cardsInd) {
             player->armies += 5 * trades - 10;
             break;
     }
+    // put the cards back in discardPile and remove them from the player's hand
+    discardPile.push_back(player->cards[cardsInd[0]]);
+    discardPile.push_back(player->cards[cardsInd[1]]);
+    discardPile.push_back(player->cards[cardsInd[2]]);
+    player->cards.erase(std::find(player->cards.begin(), player->cards.end(),
+        player->cards[cardsInd[0]]));
+    player->cards.erase(std::find(player->cards.begin(), player->cards.end(),
+        player->cards[cardsInd[1]]));
+    player->cards.erase(std::find(player->cards.begin(), player->cards.end(),
+        player->cards[cardsInd[2]]));
     return 0;
 }
 
