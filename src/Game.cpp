@@ -39,8 +39,8 @@ Game::~Game() {
 }
 
 std::vector<int> Game::rollDice(int numDice) const {
-    std::vector<int> rolls;
-    for (int i = 0; i < numDice; i++) rolls.push_back(std::rand() % 6 + 1);
+    std::vector<int> rolls(numDice);
+    for (int i = 0; i < numDice; i++) rolls[i] = std::rand() % 6 + 1;
     return rolls;
 }
 
@@ -59,6 +59,14 @@ void Game::endTurn() {
     turn = (turn + 1) % players.size();
 }
 
+bool Game::setupFinished() const {
+    for (Player *player : players) {
+        if (player->armies > 0) return false;
+    }
+    return true;
+}
+
+// note: this is used for the setup of the game and the mid-game
 int Game::addArmy(Territory *territory) {
     /* Return Key:
      * 0: added a piece to the territory
@@ -81,7 +89,7 @@ int Game::addArmy(Territory *territory) {
         if (territory->owner != player) return 2;
         ++territory->armies;
         ++territory->infantry;
-        --player->armies;
+        --player->armies; // unnecessary after the setup of the game
     }
     return 0;
 }
@@ -153,25 +161,90 @@ int Game::setAttack(Territory *start, Territory *end) {
      * 2: error, player owns ending territory
      * 3: error, territories are not connected
      * 4: error, do not have enough armies on starting territory */
-    Player *player = players[turn];
-    if (start->owner != player) return 1;
-    if (end->owner == player) return 2;
-    if (!areTerritoriesConnected(start, end)) return 3;
-    if (start->armies < 2) return 4;
+    int returnVal = canAttack(start, end);
+    if (returnVal > 0) return returnVal;
     terrOne = start;
     terrTwo = end;
     return 0;
 }
 
-int attack(int playerOneDice, int playerTwoDice) {
+int Game::attack(int playerOneDice, int playerTwoDice) {
     /* Return Key:
      * 0: battle happened
-     * 1: error, playerOneDice is invalid
-     * 2: error, playerTwoDice is invalid */
-    if (playerOneDice < 1 || playerOneDice > 3) return 1;
-    if (playerOneDice < 1 || playerOneDice > 2) return 2;
-    // attack here
+     * 1: capture
+     * 2: captured continent
+     * 3: captured world (game over) 
+     * 11: capture and eliminated a player
+     * 12: captured continent and eliminated a player
+     * 4: error, player one must roll 1-3 dice
+     * 5: error, player one must have one more infantry than dice
+     * 6: error, player two must roll 1-2 dice
+     * 7: error, player two must have one infantry per die */
+    // some error checking
+    if (playerOneDice < 1 || playerOneDice > 3) return 4;
+    if (terrOne->infantry < playerOneDice + 1) return 5;
+    if (playerOneDice < 1 || playerTwoDice > 2) return 6;
+    if (terrTwo->infantry < playerTwoDice) return 7;
+    // attack
+    std::vector<int> playerOneRoll = rollDice(playerOneDice);
+    std::vector<int> playerTwoRoll = rollDice(playerTwoDice);
+    // sort the rolls
+    selectionSort(playerOneRoll);
+    selectionSort(playerTwoRoll);
+    // compare the two highest rolls
+    if (playerOneRoll[playerOneDice - 1] > playerTwoRoll[playerTwoDice - 1]) {
+        // player one wins the battle
+        --terrTwo->infantry;
+        --terrTwo->armies;
+    } else {
+        // player two wins the battle
+        --terrOne->infantry;
+        --terrOne->armies;
+    }
+    // see if there is another battle to compare and compare the second highest
+    if (playerOneDice > 1 && playerTwoDice > 1) {
+        if (playerOneRoll[playerOneDice - 2]
+                > playerTwoRoll[playerTwoDice - 2]) {
+            // player one wins the battle
+            --terrTwo->infantry;
+            --terrTwo->armies;
+        } else {
+            // player two wins the battle
+            --terrOne->infantry;
+            --terrOne->armies;
+        }
+    }
+    // if the opposing player has no more armies, then capture his territory
+    if (terrTwo->armies == 0) {
+        int captureVal = captureTerritory(terrTwo);
+        if (captureVal == 2) return 3;
+        // if the game is not over, then the player needs to move a piece there
+        return captureVal + 1;
+    }
     return 0;
+}
+
+void Game::movePiece(char army) {
+    switch (army) {
+        case 'i':
+            --terrOne->armies;
+            --terrOne->infantry;
+            ++terrTwo->armies;
+            ++terrTwo->infantry;
+            break;
+        case 'c':
+            --terrOne->calvary;
+            --terrOne->infantry;
+            ++terrTwo->calvary;
+            ++terrTwo->infantry;
+            break;
+        case 'a':
+            --terrOne->artillery;
+            --terrOne->infantry;
+            ++terrTwo->artillery;
+            ++terrTwo->infantry;
+            break;
+    }
 }
 
 int Game::setFortify(Territory *start, Territory *end) {
@@ -306,11 +379,41 @@ Player *Game::findContOwner(const Continent *continent) const {
     return owner;
 }
 
-bool Game::areTerritoriesConnected(Territory *start, Territory *end) const {
+bool Game::areTerritoriesConnected(const Territory *start, const Territory *end) const {
     for (Territory *terr : start->nearTerritories) {
         if (terr == end) return true;
     }
     return false;
+}
+
+int Game::canAttack(const Territory *start, const Territory *end) const {
+    /* Return Key:
+     * 0: valid for start to attack end
+     * 1: error, do not own starting territory
+     * 2: error, player owns ending territory
+     * 3: error, territories are not connected
+     * 4: error, do not have enough armies on starting territory */
+    Player *player = players[turn];
+    if (start->owner != player) return 1;
+    if (end->owner == player) return 2;
+    if (!areTerritoriesConnected(start, end)) return 3;
+    if (start->armies < 2) return 4;
+    return 0;
+}
+
+void Game::selectionSort(std::vector<int> &list) const {
+    int max, temp;
+    for (int i = 0; i < list.size() - 1; i++) {
+        max = i;
+        for (int j = i + 1; j < list.size(); j++) {
+            if (list[j] < list[max]) max = j;
+        }
+        if (max != i) {
+            temp = list[max];
+            list[max] = list[i];
+            list[i] = temp;
+        }
+    }
 }
 
 int Game::captureTerritory(Territory *territory) {

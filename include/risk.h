@@ -23,19 +23,18 @@ enum Color {
 struct Territory {
 	std::string name;
 	Continent *continent;
+	std::vector<Territory*> nearTerritories;
 	Player *owner;
 	int armies;
 	int infantry;
 	int calvary;
 	int artillery;
-	std::vector<Territory*> nearTerritories;
 };
 
 struct Continent {
 	std::string name;
 	Player *owner;
 	std::vector<Territory*> territories;
-	std::vector<Continent*> nearContinents;
 	int newArmies;
 };
 
@@ -65,7 +64,6 @@ class Player {
 class Game {
 	public:
 		std::vector<Player*> players;
-		std::vector<Continent*> continents;
 
 		Game(const std::vector<std::string> &names); // unfinished
 		~Game();
@@ -74,12 +72,14 @@ class Game {
 		int getTurn() const;
 		void endTurn();
 
+		bool setupFinished() const;
 		int addArmy(Territory *territory);
 		void giveArmies(); // for the start of a turn
 		int tradeArmies(Territory *territory, char startType, char endType);
 
 		int setAttack(Territory *start, Territory *end);
-		void attack(int playerOneDice, int playerTwoDice); // unfinished
+		int attack(int playerOneDice, int playerTwoDice);
+		void movePiece(char army);
 
 		int setFortify(Territory *start, Territory *end);
 		void fortify(const std::vector<char> &armies);
@@ -87,6 +87,7 @@ class Game {
 		void giveCard();
 		int tradeCards(const std::vector<int> &cardsInd);
 	private:
+		std::vector<Continent*> continents;
 		int turn;
 		int terrOcc;         // territories occupied; used in setup of the game
 
@@ -99,7 +100,9 @@ class Game {
 		bool captured;       // for getting cards
 
 		Player *findContOwner(const Continent *continent) const;
-		bool areTerritoriesConnected(Territory *start, Territory *end) const;
+		bool areTerritoriesConnected(const Territory *start, const Territory *end) const;
+		int canAttack(const Territory *start, const Territory *end) const;
+		void selectionSort(std::vector<int> &list) const;
 		int captureTerritory(Territory *territory);
 		bool isValidTrade(const std::vector<int> &cardsInd) const;
 		Territory *findTerritory(const std::string &name) const;
