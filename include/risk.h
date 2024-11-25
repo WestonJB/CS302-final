@@ -102,7 +102,6 @@ class Game {
 
 		Player *findContOwner(const Continent *continent) const;
 		bool areTerritoriesConnected(const Territory *start, const Territory *end) const;
-		int canAttack(const Territory *start, const Territory *end) const;
 		void selectionSort(std::vector<int> &list) const;
 		int captureTerritory(Territory *territory);
 		bool isValidTrade(const std::vector<int> &cardsInd) const;

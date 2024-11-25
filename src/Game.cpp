@@ -162,8 +162,11 @@ int Game::setAttack(Territory *start, Territory *end) {
      * 2: error, player owns ending territory
      * 3: error, territories are not connected
      * 4: error, do not have enough armies on starting territory */
-    int returnVal = canAttack(start, end);
-    if (returnVal > 0) return returnVal;
+    Player *player = players[turn];
+    if (start->owner != player) return 1;
+    if (end->owner == player) return 2;
+    if (!areTerritoriesConnected(start, end)) return 3;
+    if (start->armies < 2) return 4;
     terrOne = start;
     terrTwo = end;
     return 0;
@@ -387,21 +390,6 @@ bool Game::areTerritoriesConnected(const Territory *start, const Territory *end)
         if (terr == end) return true;
     }
     return false;
-}
-
-int Game::canAttack(const Territory *start, const Territory *end) const {
-    /* Return Key:
-     * 0: valid for start to attack end
-     * 1: error, do not own starting territory
-     * 2: error, player owns ending territory
-     * 3: error, territories are not connected
-     * 4: error, do not have enough armies on starting territory */
-    Player *player = players[turn];
-    if (start->owner != player) return 1;
-    if (end->owner == player) return 2;
-    if (!areTerritoriesConnected(start, end)) return 3;
-    if (start->armies < 2) return 4;
-    return 0;
 }
 
 void Game::selectionSort(std::vector<int> &list) const {
