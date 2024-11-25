@@ -12,7 +12,7 @@
 // Note: does not work for 2 players
 Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
         terrOne{NULL}, terrTwo{NULL}, trades{0}, gotTradeBonus{false},
-        captured{true} {
+        attArm{0}, captured{true} {
     // initialize the players
     players.resize(names.size());
     for (int i = 0; i < names.size(); i++) {
@@ -52,6 +52,7 @@ void Game::endTurn() {
     terrOne = NULL;
     terrTwo = NULL;
     gotTradeBonus = false;
+    attArm = 0;
     if (captured) {
         giveCard();
         captured = false;
@@ -177,9 +178,9 @@ int Game::attack(int playerOneDice, int playerTwoDice) {
      * 11: capture and eliminated a player
      * 12: captured continent and eliminated a player
      * 4: error, player one must roll 1-3 dice
-     * 5: error, player one must have one more infantry than dice
+     * 5: error, player one must have at least one more infantry than dice
      * 6: error, player two must roll 1-2 dice
-     * 7: error, player two must have one infantry per die */
+     * 7: error, player two must have at least one infantry per die */
     // some error checking
     if (playerOneDice < 1 || playerOneDice > 3) return 4;
     if (terrOne->infantry < playerOneDice + 1) return 5;
@@ -218,33 +219,35 @@ int Game::attack(int playerOneDice, int playerTwoDice) {
     if (terrTwo->armies == 0) {
         int captureVal = captureTerritory(terrTwo);
         if (captureVal == 2) return 3;
-        // if the game is not over, then the player needs to move a piece there
+        // note: the player needs to move a piece to the captured territory
+        attArm = playerOneDice;
         return captureVal + 1;
     }
     return 0;
 }
 
-void Game::movePiece(char army) {
-    switch (army) {
-        case 'i':
-            --terrOne->armies;
-            --terrOne->infantry;
-            ++terrTwo->armies;
-            ++terrTwo->infantry;
-            break;
-        case 'c':
-            --terrOne->calvary;
-            --terrOne->infantry;
-            ++terrTwo->calvary;
-            ++terrTwo->infantry;
-            break;
-        case 'a':
-            --terrOne->artillery;
-            --terrOne->infantry;
-            ++terrTwo->artillery;
-            ++terrTwo->infantry;
-            break;
+int Game::occupyTerritory(const std::vector<char> &armies) {
+    /* Return Key:
+     * 0: occupied the territory
+     * 1: error, need as many armies as dice rolled to capture (attArm) */
+    int movedArmies = 0;
+    for (char piece : armies) {
+        switch (piece) {
+            case 'i':
+                movedArmies += 1;
+                break;
+            case 'c':
+                movedArmies += 5;
+                break;
+            case 'a':
+                movedArmies += 10;
+                break;
+        }
     }
+    if (movedArmies < attArm) return 1;
+    fortify(armies);
+    attArm = 0;
+    return 0;
 }
 
 int Game::setFortify(Territory *start, Territory *end) {
