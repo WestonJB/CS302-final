@@ -367,12 +367,9 @@ int Game::tradeCards(const std::vector<int> &cardsInd) {
     discardPile.push_back(player->cards[cardsInd[0]]);
     discardPile.push_back(player->cards[cardsInd[1]]);
     discardPile.push_back(player->cards[cardsInd[2]]);
-    player->cards.erase(std::find(player->cards.begin(), player->cards.end(),
-        player->cards[cardsInd[0]]));
-    player->cards.erase(std::find(player->cards.begin(), player->cards.end(),
-        player->cards[cardsInd[1]]));
-    player->cards.erase(std::find(player->cards.begin(), player->cards.end(),
-        player->cards[cardsInd[2]]));
+    removeElement(player->cards, player->cards[cardsInd[0]]);
+    removeElement(player->cards, player->cards[cardsInd[1]]);
+    removeElement(player->cards, player->cards[cardsInd[2]]);
     return 0;
 }
 
@@ -421,14 +418,11 @@ int Game::captureTerritory(Territory *territory) {
     // give the new player the territory and erase the old player's ownership
     territory->owner = player;
     player->territories.push_back(territory);
-    prevOwner->territories.erase(std::find(prevOwner->territories.begin(),
-        prevOwner->territories.end(), territory));
+    removeElement(prevOwner->territories, territory);
     // if the old player owns the continent, remove their ownership there
     if (territory->continent->owner == prevOwner) {
         territory->continent->owner = NULL;
-        prevOwner->continents.erase
-            (std::find(prevOwner->continents.begin(),
-            prevOwner->continents.end(), territory->continent));
+        removeElement(prevOwner->continents, territory->continent);
     }
     // if the player now owns the continent, add ownership
     if (findContOwner(territory->continent) == player) {
@@ -446,7 +440,7 @@ int Game::captureTerritory(Territory *territory) {
     } else {
         // remove the player from the player list
         delete prevOwner;
-        players.erase(std::find(players.begin(), players.end(), prevOwner));
+        removeElement(players, prevOwner);
         if (players[turn] != player) --turn;
         return returnType + 10;
     }
@@ -474,4 +468,18 @@ Territory* Game::findTerritory(const std::string &name) const {
     }
     // should only happen for wild cards
     return NULL;
+}
+
+template <typename T>
+bool Game::removeElement(std::vector<T> &list, T &element) {
+    for (int i = 0; i < list.size(); i++) {
+        if (list[i] = element) {
+            for (int j = i + 1; j < list.size(); j++) {
+                list[j - 1] = list[j];
+            }
+            list.pop_back();
+            return true;
+        }
+    }
+    return false;
 }

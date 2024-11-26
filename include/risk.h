@@ -106,6 +106,9 @@ class Game {
 		int captureTerritory(Territory *territory);
 		bool isValidTrade(const std::vector<int> &cardsInd) const;
 		Territory *findTerritory(const std::string &name) const;
+
+		template <typename T>
+		bool removeElement(std::vector<T> &list, T &element);
 };
 
 #endif
