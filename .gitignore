@@ -1,13 +1,34 @@
-/Risk/*
-!/Risk/*.uproject
-!/Risk/Source/**
-!/Risk/Config/**
-!/Risk/Plugins/**
-!/Risk/Content/
-/Risk/Content/*
-!/Risk/Content/**/*.uasset
-!/Risk/Content/**/*.umap
-!/Risk/RawContent/**/*
-/Risk/ehthumbs.db
-/Risk/Thumbs.db
+# Source: https://www.reddit.com/r/unrealengine/comments/18j1zyi/configuring_a_gitignore_for_ue5/
+
+#################################
+# Unreal Engine Generated Files #
+#################################
+Risk/Build
+Risk/Builds
+Risk/Binaries
+Risk/DerivedDataCache
+Risk/Intermediate
+Risk/Saved
+
+#################################
+# Visual Studio Generated Files #
+#################################
+# Cache Directory
 .vs
+# User Specific Files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+# CPP Cache Files
+*.VC.db
+*.opendb
+*.opensdf
+*.sdf
+# Solution Files
+*.sln
+# VSCode Cache Directory
+.vscode
+# VSCode History Files
+**/.history

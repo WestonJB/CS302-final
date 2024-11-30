@@ -1,0 +1,37 @@
+Time log:
+9/24 13:30-14:05 (35 min)  Downloading Unreal Engine 5 (UE5)
+9/26 12:00-12:10 (10 min)  Working on interface (.h) file with Justin
+     18:45-19:35 (50 min)  Installing UE 5
+9/27 16:55-17:15 (20 min)  Learning to use UE5
+9/28 11:45-12:00 (75 min)  Learning UE5 / Working on challenge 5
+     13:00-13:30 (30 min)  Learning to use UE5
+9/29 10:15-11:15 (60 min)  Working on challenge 5
+9/30 11:20-12:20 (60 min)  Reorganizing code and adding makefile
+     15:50-16:10 (20 min)  Finishing challenge 5
+
+Repository: https://github.com/WestonJB/CS302-final/tree/main
+
+Compilable task: reorganized code and added makefile
+
+Rubric:
+(5)  Code is formatted and commented cleanly
+(20) Game is implemented properly:
+     (5) Capturing territories works properly (continents add bonuses, capturing the board wins)
+     (5) Attacks work properly (defeated militia are removed, dice work properly)
+     (5) Cards work properly
+     (5) Turns change appropriately
+(10) 3-D aspects are functional:
+     (5) Militia move when an action is performed
+     (5) Game camera focuses on correct locations
+(10)  Music and sounds work and are appropriate
+	
+
+Report:
+This challenge was the most confusing and unorganized assignment that
+I've ever had. The information presented in the challenge writeup was
+very vague and ambiguous in most parts. I assume that the writeup was
+intentionally made this way, but nevertheless, it was very difficult to
+interpret and very stressful. I personally feel like 5 hours on this
+assignment is too much time; all of the previous challenges took me
+under 2 hours except for this one, and the amount of time I had in total
+to achieve this was very small.
