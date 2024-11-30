@@ -3,7 +3,7 @@
 !/Risk/Source/**
 !/Risk/Config/**
 !/Risk/Plugins/**
-!/Risk/Content/**/*.uasset
+!/Risk/Content/**
 !/Risk/Content/**/*.umap
 !/Risk/RawContent/**/*
 Risk/ehthumbs.db
