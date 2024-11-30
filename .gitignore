@@ -1,11 +1,14 @@
-/Risk/*
-!/Risk/*.uproject
-!/Risk/Source/**
-!/Risk/Config/**
-!/Risk/Plugins/**
-!/Risk/Content/**/*.uasset
-!/Risk/Content/**/*.umap
-!/Risk/RawContent/**/*
-Risk/ehthumbs.db
-Risk/Thumbs.db
+/Risk/*                           # Ignore everything in /Risk
+!/Risk/*.uproject                 # Do not ignore .uproject files in /Risk
+!/Risk/Source/**                  # Do not ignore anything in /Risk/Source/
+!/Risk/Config/**                  # Do not ignore anything in /Risk/Config/
+!/Risk/Plugins/**                 # Do not ignore anything in /Risk/Plugins/
+!/Risk/Content/                   # Do not ignore the /Risk/Content directory itself
+/Risk/Content/*                   # Ignore everything in /Risk/Content (but not its subfolders)
+!/Risk/Content/**/*.uasset        # Include all .uasset files in /Risk/Content and subdirectories
+!/Risk/Content/**/*.umap          # Include all .umap files in /Risk/Content and subdirectories
+!/Risk/RawContent/**/*            # Include everything in /Risk/RawContent/
+# Ignore unnecessary system files
+/Risk/ehthumbs.db
+/Risk/Thumbs.db
 .vs
