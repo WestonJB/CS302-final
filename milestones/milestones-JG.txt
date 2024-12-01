@@ -1,2 +1,16 @@
-Goals: 6 tracks, 1 for each army, 1 battle initialized, 1 pause menu/home track
-Complete: Pirate theme, Royalist theme, Radical theme, battle initialized, pause/home
+Timeline:
+  9/26 (6 hours): background research into FMOD DAW
+  9/29 (2 hours): start sample project with FMOD DAW
+  9/30 (2 hours): continue sample project with FMOD DAW
+  10/24 (4 hours): continue sample project with FMOD DAW
+  10/25 (2 hours): pivot to MuseScore, background research on instrumentation and functionalities
+  11/3 (4 hours): Developed and completed 2 soundtracks (Lobby/Pause, Battle Declared)
+  11/4 (1 hour): refining scores, more instrumentation research
+  11/8 (1.5 hours): Working on 2 candidate tracks
+  11/10 (2 hours): Completed one track, continued working on other (Royalist complete)
+  11/16 (1.5 hours): Continued candidate track (given to Pirates)
+  11/22 (1 hour): Continued Pirates track, started another track (Radicals)
+  11/24 (1.5 hours): Finished Pirates track, halfway with Radicals track
+  11/25 (2 hours): 90% completion with Radicals track
+  11/26 (1 hour): Finished Radicals track
+  12/1 (2 hours) UE documentation research
