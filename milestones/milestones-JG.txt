@@ -1,0 +1,2 @@
+Goals: 6 tracks, 1 for each army, 1 battle initialized, 1 pause menu/home track
+Complete: Pirate theme, Royalist theme, Radical theme, battle initialized, pause/home
