@@ -6,9 +6,6 @@
 
 #include <typeinfo>
 
-// NOTE: ------- MEANS THAT A LINE IS ASSUMING THAT WE HAVE 6 CONTINENTS
-//       +++++++ MEANS THAT A LINE IS ASSUMING THAT WE HAVE 42 TERRITORIES
-
 // Note: does not work for 2 players
 Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
         terrOne{NULL}, terrTwo{NULL}, trades{0}, gotTradeBonus{false},
@@ -22,12 +19,17 @@ Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
     }
     // initialize the board
     // allocate and name the continents
-    continents.resize(6); // -------
+    continents.resize(6);
     for (Continent *cont : continents) {
         cont = new Continent;
         cont->newArmies = 4;
     }
-    // we need to name the 6 continents [HERE]
+    continents[0]->name = "Northwest";
+    continents[1]->name = "Southwest";
+    continents[2]->name = "South-central";
+    continents[3]->name = "Southeast";
+    continents[4]->name = "North-central";
+    continents[5]->name = "Northeast";
     // allocate and name the territories
     for (Continent *cont : continents) {
         cont->territories.resize(7);
@@ -130,7 +132,7 @@ int Game::addArmy(Territory *territory) {
      * 1: error, must add piece to unoccupied territory (start of game)
      * 2: error, must add piece to one's own territory */
     Player *player = players[turn];
-    if (terrOcc < 42) { // +++++++
+    if (terrOcc < 42) {
         if (territory->owner != NULL) return 1;
         territory->owner = player;
         player->territories.push_back(territory);
@@ -485,7 +487,7 @@ int Game::captureTerritory(Territory *territory) {
         territory->continent->owner = player;
         player->continents.push_back(territory->continent);
         // check if they have every continent
-        if (player->continents.size() == 6) return 2; // -------
+        if (player->continents.size() == 6) return 2;
         returnType = 1;
     } else {
         returnType = 0;
