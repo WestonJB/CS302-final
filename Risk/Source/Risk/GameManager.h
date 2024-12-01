@@ -6,6 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "GameManager.generated.h"
 
+class URiskPlayer;
+class UContinent;
+class ATerritory;
+class Card;
+
 UCLASS()
 class RISK_API AGameManager : public AActor
 {
@@ -13,29 +18,59 @@ class RISK_API AGameManager : public AActor
 	
 public:	
 	// Sets default values for this actor's properties
-	AGameManager();
+	AGameManager(const TArray<FString>& names = {});
+	~AGameManager();
 
-	TArray<AActor> players;
+	TArray<int8> RollDice(int8 numDice) const;
+	void SetTurn(int16 newTurn);
+	int16 GetTurn() const;
+	void EndTurn();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-	TArray<AActor> continents;
-	int8 turn;
-	int8 terrOcc;
+	bool SetupFinished() const;
+	int8 AddArmy(TObjectPtr<ATerritory> territory);
+	void GiveArmies();
+	int8 TradeArmies(TObjectPtr<ATerritory> territory, TCHAR startType, TCHAR endType);
 
-	TArray<AActor> drawPile;
-	TArray<AActor> discardPile;
-	AActor& terrOne;
-	AActor& terrTwo;
-	int16 trades;
-	bool gotTradeBonus;
-	int8 attArm;
-	bool captured;
+	int8 SetAttack(TObjectPtr<ATerritory> start, TObjectPtr<ATerritory> end);
+	int8 Attack(int8 playerOneDice, int8 playerTwoDice);
+	int8 OccupyTerritory(const TArray<TCHAR>& armies);
 
+	int8 SetFortify(TObjectPtr<ATerritory> start, TObjectPtr<ATerritory> end);
+	void Fortify(const TArray<TCHAR>& armies);
 
-public:	
+	void GiveCard();
+	int8 TradeCards(const TArray<int8>& cardsInd);
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	TArray<TObjectPtr<URiskPlayer>> Players;
+
+protected:
+	TArray<TObjectPtr<UContinent>> Continents;
+	int8 Turn;
+	int8 TerritoriesOccupied;
+
+	TArray<TObjectPtr<Card>> DrawPile;
+	TArray<TObjectPtr<Card>> DiscardPile;
+
+	TObjectPtr<ATerritory> TerrOne;
+	TObjectPtr<ATerritory> TerrTwo;
+	int16 Trades;
+	bool bGotTradeBonus;
+	int8 AttackArmies;
+	bool bCaptured;
+
+	TObjectPtr<URiskPlayer> FindContOwner(const TObjectPtr<UContinent> continent) const;
+	bool AreConnectedTerritories(const TObjectPtr<ATerritory> start, const TObjectPtr<ATerritory> end) const;
+	void SelectionSort(TArray<int16>& list) const;
+	int8 CaptureTerritory(TObjectPtr<ATerritory> territory);
+	bool IsValidTrade(const TArray<int8>& cardsInd) const;
+	TObjectPtr<ATerritory> FindTerritory(const FString& name) const;
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
 
 };
