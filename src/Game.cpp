@@ -21,8 +21,64 @@ Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
         players[i]->armies = 50 - names.size() * 5;
     }
     // initialize the board
+    // allocate and name the continents
     continents.resize(6); // -------
-    // do a bunch of work for the map here
+    for (Continent *cont : continents) {
+        cont = new Continent;
+        cont->newArmies = 4;
+    }
+    // we need to name the 6 continents [HERE]
+    // allocate and name the territories
+    for (Continent *cont : continents) {
+        cont->territories.resize(7);
+        for (Territory *terr : cont->territories) {
+            terr = new Territory;
+            terr->continent = cont;
+        }
+    }
+    continents[0]->territories[0]->name = "Iceland";
+    continents[0]->territories[1]->name = "Ireland";
+    continents[0]->territories[2]->name = "Northern Ireland";
+    continents[0]->territories[3]->name = "United Kingdom";
+    continents[0]->territories[4]->name = "France";
+    continents[0]->territories[5]->name = "Belgium";
+    continents[0]->territories[6]->name = "Netherlands";
+    continents[1]->territories[0]->name = "Portugal";
+    continents[1]->territories[1]->name = "Spain";
+    continents[1]->territories[2]->name = "Morocco";
+    continents[1]->territories[3]->name = "Algeria";
+    continents[1]->territories[4]->name = "Tunisia";
+    continents[1]->territories[5]->name = "Italy";
+    continents[1]->territories[6]->name = "Switzerland";
+    continents[2]->territories[0]->name = "Austria";
+    continents[2]->territories[1]->name = "Hungary";
+    continents[2]->territories[2]->name = "Slovakia";
+    continents[2]->territories[3]->name = "Slovenia";
+    continents[2]->territories[4]->name = "Croatia";
+    continents[2]->territories[5]->name = "Bosnia and Herzegovina";
+    continents[2]->territories[6]->name = "Belgrade";
+    continents[3]->territories[0]->name = "Romania";
+    continents[3]->territories[1]->name = "Bulgaria";
+    continents[3]->territories[2]->name = "Turkey";
+    continents[3]->territories[3]->name = "Greece";
+    continents[3]->territories[4]->name = "Moldova";
+    continents[3]->territories[5]->name = "Albnia";
+    continents[3]->territories[6]->name = "Macedonia";
+    continents[4]->territories[0]->name = "Norway";
+    continents[4]->territories[1]->name = "Sweden";
+    continents[4]->territories[2]->name = "Denmark";
+    continents[4]->territories[3]->name = "Germany";
+    continents[4]->territories[4]->name = "Poland";
+    continents[4]->territories[5]->name = "Czech Republic";
+    continents[4]->territories[6]->name = "Kaliningrad";
+    continents[5]->territories[0]->name = "Russia";
+    continents[5]->territories[1]->name = "Finland";
+    continents[5]->territories[2]->name = "Latvia";
+    continents[5]->territories[3]->name = "Lithuania";
+    continents[5]->territories[4]->name = "Belarus";
+    continents[5]->territories[5]->name = "Ukraine";
+    continents[5]->territories[6]->name = "Estonia";
+    // we need to set adjeceny lists HERE
     // initialize the drawPile here
 }
 Game::~Game() {
