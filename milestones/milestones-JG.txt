@@ -14,3 +14,19 @@ Timeline:
   11/25 (2 hours): 90% completion with Radicals track
   11/26 (1 hour): Finished Radicals track
   12/1 (2 hours) UE documentation research
+
+Milestones:
+  9/29: start work on FMOD
+  10/25: pivot to MuseScore
+  11/3: completion of 2 tracks
+  11/10: completion of one track
+  11/24: completion of one track
+  11/26: completion of one track
+  12/1: understanding of UE array containers, classes and similarities w/ C++
+
+Rubric:
+  +30 all 6 soundtracks in game
+    +4 per soundtrack
+  +6 all 6 scores in file
+    +1 per score
+  +4 coding assistance, debugging
