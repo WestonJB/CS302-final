@@ -8,29 +8,23 @@
 #include "Card.h"
 
 // Sets default values
-AGameManager::AGameManager(const TArray<FString>& names) : Turn{ -1 }, TerritoriesOccupied{ 0 }, TerrOne{nullptr}, TerrTwo { nullptr }, Trades{ 0 }, bGotTradeBonus{ false }, AttackArmies{ 0 }, bCaptured{ true }
+AGameManager::AGameManager() : Turn{ -1 }, TerritoriesOccupied{ 0 }, TerrOne{nullptr}, TerrTwo { nullptr }, Trades{ 0 }, bGotTradeBonus{ false }, AttackArmies{ 0 }, bCaptured{ true }
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
     // initialize the players
-    Players.SetNum(names.Num());
-    for (int8 i = 0; i < names.Num(); ++i) {
+    TArray<FString> Names = GetNames();
+    Players.SetNum(Names.Num());
+    for (int8 i = 0; i < Names.Num(); ++i) {
         Players[i] = NewObject<URiskPlayer>();
-        Players[i]->SetName(names[i]);
-        Players[i]->Armies = 50 - names.Num() * 5;
+        Players[i]->SetName(Names[i]);
+        Players[i]->Armies = 50 - Names.Num() * 5;
     }
 
     // initialize the board
     // allocate and name the continents
-    Continents.SetNum(6); // -------
-    for (TObjectPtr<UContinent> Continent : Continents) {
-        Continent = NewObject<UContinent>();
-        Continent->NewArmies = 4;
-    }
-
-    // create array of names
-    TArray<TArray<FString>> Names =
+    TArray<TArray<FString>> TerritoryNames =
     { { "Iceland", "Ireland", "Northern Ireland", "United Kingdom",  "France", "Belgium", "Netherlands" },
       { "Portugal", "Spain", "Morocco", "Algeria", "Tunisia", "Italy", "Switzerland"},
       { "Austria", "Hungary", "Slovakia", "Slovenia", "Croatia", "Bosnia and Herzegovina", "Belgrade" },
@@ -38,20 +32,38 @@ AGameManager::AGameManager(const TArray<FString>& names) : Turn{ -1 }, Territori
       { "Norway", "Sweden", "Denmark", "Germany", "Poland", "Czech Republic", "Kaliningrad"},
       { "Russia", "Finland", "Latvia", "Lithuania", "Belarus", "Ukraine", "Estonia" } };
 
-    // we need to name the 6 continents [HERE]
-    // allocate and name the territories
+    Continents.SetNum(6); // -------
     for (int8 i = 0; i < Continents.Num(); ++i) {
-        auto Continent = Continents[i];
-        Continent->Territories.SetNum(7);
-        for (int8 j = 0; j < Continent->Territories.Num(); ++j) {
-            auto Territory = Continent->Territories[j];
+        Continents[i] = NewObject<UContinent>();
+        Continents[i]->NewArmies = 4;
+        Continents[i]->Territories.SetNum(7);
+        for (int8 j = 0; j < Continents[i]->Territories.Num(); ++j) {
+            TObjectPtr<ATerritory> Territory = Continents[i]->Territories[j];
             Territory = NewObject<ATerritory>();
-            Territory->Continent = Continent;
+            Territory->Continent = Continents[i];
+            Territory->Name = TerritoryNames[i][j];
         }
     }
 
+    // we need to name the 6 continents [HERE]
+    // allocate and name the territories
+    /*for (int8 i = 0; i < Continents.Num(); ++i) {
+        TObjectPtr<UContinent> Continent = Continents[i];
+        Continent->Territories.SetNum(7);
+        for (int8 j = 0; j < Continent->Territories.Num(); ++j) {
+            TObjectPtr<ATerritory> Territory = Continent->Territories[j];
+            Territory = NewObject<ATerritory>();
+            Territory->Continent = Continent;
+            Territory->Name = TerritoryNames[i][j];
+        }
+    }*/
+
     // we need to set adjeceny lists HERE
     // initialize the DrawPile here
+}
+
+TArray<FString> AGameManager::GetNames() {
+    return TArray<FString> {"Alice", "Bob", "Charlie", "David"};
 }
 
 TArray<int8> AGameManager::RollDice(int8 NumDice) const {
@@ -328,13 +340,13 @@ void AGameManager::GiveCard() {
         DrawPile = DiscardPile;
         DiscardPile.Empty();
         // shuffle
-        int8 temp;
-        Card* temp2;
+        int8 Temp;
+        TObjectPtr<UCard> temp2;
         for (int8 i = 0; i < DrawPile.Num() - 1; i++) {
-            temp = std::rand() % (DrawPile.Num() - i) + i;
+            Temp = std::rand() % (DrawPile.Num() - i) + i;
             temp2 = DrawPile[i];
-            DrawPile[i] = DrawPile[temp];
-            DrawPile[temp] = temp2;
+            DrawPile[i] = DrawPile[Temp];
+            DrawPile[Temp] = temp2;
         }
     }
 }
@@ -480,11 +492,6 @@ TObjectPtr<ATerritory> AGameManager::FindTerritory(const FString& name) const {
     }
     // should only happen for wild cards
     return nullptr;
-}
-
-AGameManager::~AGameManager()
-{
-	Super::~AActor();
 }
 
 // Called every frame

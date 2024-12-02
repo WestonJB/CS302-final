@@ -10,11 +10,13 @@ class URiskPlayer;
 class ATerritory;
 
 UCLASS()
-class RISK_API UContinent : public UObject
+class UContinent : public UObject
 {
 	GENERATED_BODY()
 
 public:
+	UContinent();
+	
 	FString Name;
 	TObjectPtr<URiskPlayer> Owner;
 	TArray<TObjectPtr<ATerritory>> Territories;

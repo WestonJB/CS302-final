@@ -3,15 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
+#include "Card.generated.h"
 
 /**
  * 
  */
-class RISK_API Card
+UCLASS()
+class RISK_API UCard : public UObject
 {
+	GENERATED_BODY()
+
 public:
-	Card();
-	~Card();
 	FString Territory;
 	FString Army;
 };

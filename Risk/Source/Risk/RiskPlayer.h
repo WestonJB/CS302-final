@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Card.h"
 #include "RiskPlayer.generated.h"
 
 enum Color {
@@ -39,7 +40,7 @@ public:
 	TArray<TObjectPtr<UContinent>> Continents;
 
 	UPROPERTY()
-	TArray<TObjectPtr<Card>> Cards;
+	TArray<TObjectPtr<UCard>> Cards;
 
 	int16 Armies;
 

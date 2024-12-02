@@ -9,7 +9,7 @@
 class URiskPlayer;
 class UContinent;
 class ATerritory;
-class Card;
+class UCard;
 
 UCLASS()
 class RISK_API AGameManager : public AActor
@@ -18,8 +18,8 @@ class RISK_API AGameManager : public AActor
 	
 public:	
 	// Sets default values for this actor's properties
-	AGameManager(const TArray<FString>& names = {});
-	~AGameManager();
+	AGameManager();
+	TArray<FString> GetNames();
 
 	TArray<int8> RollDice(int8 numDice) const;
 	void SetTurn(int16 newTurn);
@@ -51,8 +51,8 @@ protected:
 	int8 Turn;
 	int8 TerritoriesOccupied;
 
-	TArray<TObjectPtr<Card>> DrawPile;
-	TArray<TObjectPtr<Card>> DiscardPile;
+	TArray<TObjectPtr<UCard>> DrawPile;
+	TArray<TObjectPtr<UCard>> DiscardPile;
 
 	TObjectPtr<ATerritory> TerrOne;
 	TObjectPtr<ATerritory> TerrTwo;
