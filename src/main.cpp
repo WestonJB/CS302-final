@@ -56,6 +56,11 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	string playerOne = maxPlayer[0];
+
+/*ALT:
+	int index = std::rand() % playerNames.size();
+ 	string playerOne = playerNames[index];
+ */
 /*********************************************END JOSEF CODE*****************************************/
 
 	//////////////
