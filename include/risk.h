@@ -20,6 +20,10 @@ enum Color {
 	grey
 }; // more or less colors can be added if we want
 
+struct Piece {
+	char type;
+};
+
 struct Territory {
 	std::string name;
 	Continent *continent;
@@ -35,7 +39,6 @@ struct Continent {
 	std::string name;
 	Player *owner;
 	std::vector<Territory*> territories;
-	int newArmies;
 };
 
 // note: wild cards have "wild" for both members
@@ -79,10 +82,10 @@ class Game {
 
 		int setAttack(Territory *start, Territory *end);
 		int attack(int playerOneDice, int playerTwoDice);
-		int occupyTerritory(const std::vector<char> &armies);
+		int occupyTerritory(const std::vector<Piece*> &armies);
 
 		int setFortify(Territory *start, Territory *end);
-		void fortify(const std::vector<char> &armies);
+		void fortify(const std::vector<Piece*> &armies);
 
 		void giveCard();
 		int tradeCards(const std::vector<int> &cardsInd);
@@ -102,13 +105,9 @@ class Game {
 
 		Player *findContOwner(const Continent *continent) const;
 		bool areTerritoriesConnected(const Territory *start, const Territory *end) const;
-		void selectionSort(std::vector<int> &list) const;
 		int captureTerritory(Territory *territory);
 		bool isValidTrade(const std::vector<int> &cardsInd) const;
 		Territory *findTerritory(const std::string &name) const;
-
-		template <typename T>
-		bool removeElement(std::vector<T> &list, T &element);
 };
 
 #endif

@@ -6,7 +6,7 @@
 
 #include <typeinfo>
 
-// Note: does not work for 2 players
+// Note: does not work for 2 players (might be okay since Risk typically has 3 to 6 players)
 Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
         terrOne{NULL}, terrTwo{NULL}, trades{0}, gotTradeBonus{false},
         attArm{0}, captured{true} {
@@ -22,7 +22,6 @@ Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
     continents.resize(6);
     for (Continent *cont : continents) {
         cont = new Continent;
-        cont->newArmies = 4;
     }
     continents[0]->name = "Northwest";
     continents[1]->name = "Southwest";
@@ -81,7 +80,39 @@ Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
     continents[5]->territories[5]->name = "Ukraine";
     continents[5]->territories[6]->name = "Estonia";
     // we need to set adjeceny lists HERE
-    // initialize the drawPile here
+    // initialize the drawPile
+    drawPile = {new Card{"wild", "wild"}, new Card{"wild", "wild"},
+        new Card{"Iceland", "Infantry"}, new Card{"Ireland", "Cavalry"}, new
+        Card{"Northern Ireland", "Artillery"}, new Card{"United Kingdom",
+        "Infantry"}, new Card{"France", "Cavalry"}, new Card{"Belgium",
+        "Artillery"}, new Card{"Netherlands", "Infantry"}, new Card{"Portugal",
+        "Cavalry"}, new Card{"Spain", "Artillery"}, new Card{"Morocco",
+        "Infantry"}, new Card{"Algeria", "Cavalry"}, new Card{"Tunisia",
+        "Artillery"}, new Card{"Italy", "Infantry"}, new Card{"Switzerland",
+        "Artillery"}, new Card{"Austria", "Infantry"}, new Card{"Hungary",
+        "Cavalry"}, new Card{"Slovakia", "Cavalry"}, new Card{"Slovenia",
+        "Infantry"}, new Card{"Croatia", "Cavalry"}, new
+        Card{"Bosnia and Herzegovina", "Artillery"}, new Card{"Belgrade",
+        "Infantry"}, new Card{"Romania", "Cavalry"}, new Card{"Bulgaria",
+        "Infantry"}, new Card{"Turkey", "Cavalry"}, new Card{"Greece",
+        "Artillery"}, new Card{"Moldova", "Artillery"}, new Card{"Albania",
+        "Infantry"}, new Card{"Macedonia", "Cavalry"}, new Card{"Norway",
+        "Artillery"}, new Card{"Sweden", "Infantry"}, new Card{"Denmark",
+        "Cavalry"}, new Card{"Germany", "Artillery"}, new Card{"Poland",
+        "Infantry"}, new Card{"Czech Republic", "Cavalry"}, new
+        Card{"Kaliningrad", "Artillery"}, new Card{"Russia", "Infantry"}, new
+        Card{"Finland", "Cavalry"}, new Card{"Latvia", "Artillery"}, new
+        Card{"Lithuania", "Infantry"}, new Card{"Belarus", "Cavalry"}, new
+        Card{"Ukraine", "Artillery"}, new Card{"Estonia", "Artillery"}};
+    // shuffle the drawPile
+    int temp;
+    Card *temp2;
+    for (int i = 0; i < drawPile.size() - 1; i++) {
+        temp = std::rand() % (drawPile.size() - i) + i;
+        temp2 = drawPile[i];
+        drawPile[i] = drawPile[temp];
+        drawPile[temp] = temp2;
+    }
 }
 Game::~Game() {
     for (auto i : players) {
@@ -156,7 +187,7 @@ int Game::addArmy(Territory *territory) {
 void Game::giveArmies() {
     Player *player = players[turn];
     int newArmies = player->territories.size() / 3;
-    for (Continent *i : player->continents) newArmies += i->newArmies;
+    for (Continent *i : player->continents) newArmies += 4;
     if (3 < newArmies) player->armies += newArmies;
     else player->armies += 3;
 }
@@ -250,9 +281,9 @@ int Game::attack(int playerOneDice, int playerTwoDice) {
     // attack
     std::vector<int> playerOneRoll = rollDice(playerOneDice);
     std::vector<int> playerTwoRoll = rollDice(playerTwoDice);
-    // sort the rolls
-    selectionSort(playerOneRoll);
-    selectionSort(playerTwoRoll);
+    // sort the rolls (NOTE: THIS IS DONE IN THE UNREAL CODE)
+    /*selectionSort(playerOneRoll);
+    selectionSort(playerTwoRoll);*/
     // compare the two highest rolls
     if (playerOneRoll[playerOneDice - 1] > playerTwoRoll[playerTwoDice - 1]) {
         // player one wins the battle
@@ -287,12 +318,13 @@ int Game::attack(int playerOneDice, int playerTwoDice) {
     return 0;
 }
 
-int Game::occupyTerritory(const std::vector<char> &armies) {
+int Game::occupyTerritory(const std::vector<Piece*> &armies) {
     /* Return Key:
      * 0: occupied the territory
      * 1: error, need as many armies as dice rolled to capture (attArm) */
     int movedArmies = 0;
-    for (char piece : armies) {
+    for (int i = 0; i < armies.size(); i++) {
+        char piece = armies[i]->type;
         switch (piece) {
             case 'i':
                 movedArmies += 1;
@@ -326,10 +358,11 @@ int Game::setFortify(Territory *start, Territory *end) {
     return 0;
 }
 
-void Game::fortify(const std::vector<char> &pieces) {
+void Game::fortify(const std::vector<Piece*> &armies) {
     int value;
-    for (int i : pieces) {
+    for (int i = 0; i < armies.size(); i++) {
         // find the value of the piece and change the armies on territories
+        char piece = armies[i]->type;
         switch (i) {
             case 'i':
                 value = 1;
@@ -425,9 +458,10 @@ int Game::tradeCards(const std::vector<int> &cardsInd) {
     discardPile.push_back(player->cards[cardsInd[0]]);
     discardPile.push_back(player->cards[cardsInd[1]]);
     discardPile.push_back(player->cards[cardsInd[2]]);
-    removeElement(player->cards, player->cards[cardsInd[0]]);
+    // NOTE: THIS IS DONE IN THE UNREAL CODE
+    /*removeElement(player->cards, player->cards[cardsInd[0]]);
     removeElement(player->cards, player->cards[cardsInd[1]]);
-    removeElement(player->cards, player->cards[cardsInd[2]]);
+    removeElement(player->cards, player->cards[cardsInd[2]]);*/
     return 0;
 }
 
@@ -447,21 +481,6 @@ bool Game::areTerritoriesConnected(const Territory *start, const Territory *end)
     return false;
 }
 
-void Game::selectionSort(std::vector<int> &list) const {
-    int max, temp;
-    for (int i = 0; i < list.size() - 1; i++) {
-        max = i;
-        for (int j = i + 1; j < list.size(); j++) {
-            if (list[j] < list[max]) max = j;
-        }
-        if (max != i) {
-            temp = list[max];
-            list[max] = list[i];
-            list[i] = temp;
-        }
-    }
-}
-
 int Game::captureTerritory(Territory *territory) {
     /* Return Key:
      * 0: normal capture
@@ -476,11 +495,12 @@ int Game::captureTerritory(Territory *territory) {
     // give the new player the territory and erase the old player's ownership
     territory->owner = player;
     player->territories.push_back(territory);
-    removeElement(prevOwner->territories, territory);
+    // removeElement(prevOwner->territories, territory); // NOTE: IN UNREAL
     // if the old player owns the continent, remove their ownership there
     if (territory->continent->owner == prevOwner) {
         territory->continent->owner = NULL;
-        removeElement(prevOwner->continents, territory->continent);
+        // NOTE: IN UNREAL
+        //removeElement(prevOwner->continents, territory->continent);
     }
     // if the player now owns the continent, add ownership
     if (findContOwner(territory->continent) == player) {
@@ -498,7 +518,7 @@ int Game::captureTerritory(Territory *territory) {
     } else {
         // remove the player from the player list
         delete prevOwner;
-        removeElement(players, prevOwner);
+        // removeElement(players, prevOwner); // NOTE: IN UNREAL
         if (players[turn] != player) --turn;
         return returnType + 10;
     }
@@ -526,18 +546,4 @@ Territory* Game::findTerritory(const std::string &name) const {
     }
     // should only happen for wild cards
     return NULL;
-}
-
-template <typename T>
-bool Game::removeElement(std::vector<T> &list, T &element) {
-    for (int i = 0; i < list.size(); i++) {
-        if (list[i] = element) {
-            for (int j = i + 1; j < list.size(); j++) {
-                list[j - 1] = list[j];
-            }
-            list.pop_back();
-            return true;
-        }
-    }
-    return false;
 }
