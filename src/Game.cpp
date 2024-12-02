@@ -81,7 +81,39 @@ Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
     continents[5]->territories[5]->name = "Ukraine";
     continents[5]->territories[6]->name = "Estonia";
     // we need to set adjeceny lists HERE
-    // initialize the drawPile here
+    // initialize the drawPile
+    drawPile = {new Card{"wild", "wild"}, new Card{"wild", "wild"},
+        new Card{"Iceland", "Infantry"}, new Card{"Ireland", "Cavalry"}, new
+        Card{"Northern Ireland", "Artillery"}, new Card{"United Kingdom",
+        "Infantry"}, new Card{"France", "Cavalry"}, new Card{"Belgium",
+        "Artillery"}, new Card{"Netherlands", "Infantry"}, new Card{"Portugal",
+        "Cavalry"}, new Card{"Spain", "Artillery"}, new Card{"Morocco",
+        "Infantry"}, new Card{"Algeria", "Cavalry"}, new Card{"Tunisia",
+        "Artillery"}, new Card{"Italy", "Infantry"}, new Card{"Switzerland",
+        "Artillery"}, new Card{"Austria", "Infantry"}, new Card{"Hungary",
+        "Cavalry"}, new Card{"Slovakia", "Cavalry"}, new Card{"Slovenia",
+        "Infantry"}, new Card{"Croatia", "Cavalry"}, new
+        Card{"Bosnia and Herzegovina", "Artillery"}, new Card{"Belgrade",
+        "Infantry"}, new Card{"Romania", "Cavalry"}, new Card{"Bulgaria",
+        "Infantry"}, new Card{"Turkey", "Cavalry"}, new Card{"Greece",
+        "Artillery"}, new Card{"Moldova", "Artillery"}, new Card{"Albania",
+        "Infantry"}, new Card{"Macedonia", "Cavalry"}, new Card{"Norway",
+        "Artillery"}, new Card{"Sweden", "Infantry"}, new Card{"Denmark",
+        "Cavalry"}, new Card{"Germany", "Artillery"}, new Card{"Poland",
+        "Infantry"}, new Card{"Czech Republic", "Cavalry"}, new
+        Card{"Kaliningrad", "Artillery"}, new Card{"Russia", "Infantry"}, new
+        Card{"Finland", "Cavalry"}, new Card{"Latvia", "Artillery"}, new
+        Card{"Lithuania", "Infantry"}, new Card{"Belarus", "Cavalry"}, new
+        Card{"Ukraine", "Artillery"}, new Card{"Estonia", "Artillery"}};
+    // shuffle the drawPile
+    int temp;
+    Card *temp2;
+    for (int i = 0; i < drawPile.size() - 1; i++) {
+        temp = std::rand() % (drawPile.size() - i) + i;
+        temp2 = drawPile[i];
+        drawPile[i] = drawPile[temp];
+        drawPile[temp] = temp2;
+    }
 }
 Game::~Game() {
     for (auto i : players) {
