@@ -14,6 +14,7 @@ Timeline:
   11/25 (2 hours): 90% completion with Radicals track
   11/26 (1 hour): Finished Radicals track
   12/1 (2 hours) UE documentation research
+  12/2 (4 hours): Knight theme track completion
 
 Milestones:
   9/29: start work on FMOD
@@ -23,6 +24,7 @@ Milestones:
   11/24: completion of one track
   11/26: completion of one track
   12/1: understanding of UE array containers, classes and similarities w/ C++
+  12/2: completion of one track
 
 Rubric:
   +30 all 6 soundtracks in game
