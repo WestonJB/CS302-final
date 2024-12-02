@@ -27,6 +27,37 @@ int main(int argc, char *argv[]) {
 	// if there is a tie, make the people with the die roll again
 	// start giving out territories starting with the winner of the roll
 
+/*********************************************JOSEF CODE***************************************/
+	//determine who goes first from rolls of a 6-sided die
+	int maxDice = 0;
+	std::vector<std::string> maxPlayer;
+	for(player : playerNames){
+		int roll = std::rand() % 6 + 1;
+		if(roll > maxDice){
+			maxDice = roll;
+			maxPlayer.clear();
+			maxPlayer.push_back(player);
+		}
+		else if(roll == maxDice){
+			maxPlayer.push_back(player);
+		}
+	}
+	while(maxPlayer.size() != 1){		//until one player emerges as the first player
+		for(player : maxPlayer){
+			int roll = std::rand() % 6 + 1;
+			if(roll > maxDice){
+				maxDice = roll;
+				maxPlayer.clear();
+				maxPlayer.push_back(player);
+			}
+			else if(roll == maxDice){
+				maxPlayer.push_back(player);
+			}
+		}
+	}
+	string playerOne = maxPlayer[0];
+/*********************************************END JOSEF CODE*****************************************/
+
 	//////////////
 	// GAMEPLAY //
 	//////////////
