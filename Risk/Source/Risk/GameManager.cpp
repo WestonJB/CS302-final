@@ -16,7 +16,7 @@ AGameManager::AGameManager() : Turn{ -1 }, TerritoriesOccupied{ 0 }, TerrOne{nul
     // initialize the players
     TArray<FString> Names = GetNames();
     Players.SetNum(Names.Num());
-    for (int8 i = 0; i < Names.Num(); ++i) {
+    for (int32 i = 0; i < Names.Num(); ++i) {
         Players[i] = NewObject<URiskPlayer>();
         Players[i]->SetName(Names[i]);
         Players[i]->Armies = 50 - Names.Num() * 5;
@@ -32,12 +32,15 @@ AGameManager::AGameManager() : Turn{ -1 }, TerritoriesOccupied{ 0 }, TerrOne{nul
       { "Norway", "Sweden", "Denmark", "Germany", "Poland", "Czech Republic", "Kaliningrad"},
       { "Russia", "Finland", "Latvia", "Lithuania", "Belarus", "Ukraine", "Estonia" } };
 
+    // we need to name the 6 continents [HERE]
+    // allocate and name the territories
+
     Continents.SetNum(6); // -------
-    for (int8 i = 0; i < Continents.Num(); ++i) {
+    for (int32 i = 0; i < Continents.Num(); ++i) {
         Continents[i] = NewObject<UContinent>();
         Continents[i]->NewArmies = 4;
         Continents[i]->Territories.SetNum(7);
-        for (int8 j = 0; j < Continents[i]->Territories.Num(); ++j) {
+        for (int32 j = 0; j < Continents[i]->Territories.Num(); ++j) {
             TObjectPtr<ATerritory> Territory = Continents[i]->Territories[j];
             Territory = NewObject<ATerritory>();
             Territory->Continent = Continents[i];
@@ -45,18 +48,6 @@ AGameManager::AGameManager() : Turn{ -1 }, TerritoriesOccupied{ 0 }, TerrOne{nul
         }
     }
 
-    // we need to name the 6 continents [HERE]
-    // allocate and name the territories
-    /*for (int8 i = 0; i < Continents.Num(); ++i) {
-        TObjectPtr<UContinent> Continent = Continents[i];
-        Continent->Territories.SetNum(7);
-        for (int8 j = 0; j < Continent->Territories.Num(); ++j) {
-            TObjectPtr<ATerritory> Territory = Continent->Territories[j];
-            Territory = NewObject<ATerritory>();
-            Territory->Continent = Continent;
-            Territory->Name = TerritoryNames[i][j];
-        }
-    }*/
 
     // we need to set adjeceny lists HERE
     // initialize the DrawPile here
@@ -66,17 +57,17 @@ TArray<FString> AGameManager::GetNames() {
     return TArray<FString> {"Alice", "Bob", "Charlie", "David"};
 }
 
-TArray<int8> AGameManager::RollDice(int8 NumDice) const {
-    TArray<int8> Rolls;
+TArray<int32> AGameManager::RollDice(int32 NumDice) const {
+    TArray<int32> Rolls;
     Rolls.SetNum(NumDice);
-    for (int8 i = 0; i < NumDice; i++)
+    for (int32 i = 0; i < NumDice; i++)
         Rolls[i] = std::rand() % 6 + 1;
     return Rolls;
 }
 
-void AGameManager::SetTurn(int16 NewTurn) { Turn = NewTurn; }
+void AGameManager::SetTurn(int32 NewTurn) { Turn = NewTurn; }
 
-int16 AGameManager::GetTurn() const { return Turn; }
+int32 AGameManager::GetTurn() const { return Turn; }
 
 void AGameManager::EndTurn() {
     TerrOne = nullptr;
@@ -98,15 +89,15 @@ bool AGameManager::SetupFinished() const {
 }
 
 // note: this is used for the setup of the game and the mid-game
-int8 AGameManager::AddArmy(TObjectPtr<ATerritory> Territory) {
+int32 AGameManager::AddArmy(TObjectPtr<ATerritory> Territory) {
     /* Return Key:
      * 0: added a piece to the territory
      * 1: error, must add piece to unoccupied territory (start of game)
      * 2: error, must add piece to one's own territory */
     TObjectPtr<URiskPlayer> Player = Players[Turn];
     if (TerritoriesOccupied < 42) { // +++++++
-        if (Territory->Owner != nullptr) return 1;
-        Territory->Owner = Player;
+        if (Territory->TerritoryOwner != nullptr) return 1;
+        Territory->TerritoryOwner = Player;
         Player->Territories.Add(Territory);
         Territory->Armies = 1;
         Territory->Infantry = 1;
@@ -118,7 +109,7 @@ int8 AGameManager::AddArmy(TObjectPtr<ATerritory> Territory) {
         ++TerritoriesOccupied;
     }
     else {
-        if (Territory->Owner != Player) return 2;
+        if (Territory->TerritoryOwner != Player) return 2;
         ++Territory->Armies;
         ++Territory->Infantry;
         --Player->Armies; // unnecessary after the setup of the game
@@ -128,20 +119,20 @@ int8 AGameManager::AddArmy(TObjectPtr<ATerritory> Territory) {
 
 void AGameManager::GiveArmies() {
     TObjectPtr<URiskPlayer> player = Players[Turn];
-    int8 newArmies = player->Territories.Num() / 3;
+    int32 newArmies = player->Territories.Num() / 3;
     for (TObjectPtr<UContinent> i : player->Continents) newArmies += i->NewArmies;
     if (3 < newArmies) player->Armies += newArmies;
     else player->Armies += 3;
 }
 
-int8 AGameManager::TradeArmies(TObjectPtr<ATerritory> Territory, TCHAR startType, TCHAR endType) {
+int32 AGameManager::TradeArmies(TObjectPtr<ATerritory> Territory, TCHAR startType, TCHAR endType) {
     /* Return Key:
      * 0: traded armies
      * 1: error, do not own territory
      * 2: error, trading pieces for the same pieces (startType == endType)
      * 3: error, do not own enough pieces to trade */
     TObjectPtr<URiskPlayer> player = Players[Turn];
-    if (Territory->Owner != player) return 1;
+    if (Territory->TerritoryOwner != player) return 1;
     if (startType == endType) return 2;
     switch (startType) {
     case 'i':
@@ -186,7 +177,7 @@ int8 AGameManager::TradeArmies(TObjectPtr<ATerritory> Territory, TCHAR startType
     return 0;
 }
 
-int8 AGameManager::SetAttack(TObjectPtr<ATerritory> Start, TObjectPtr<ATerritory> End) {
+int32 AGameManager::SetAttack(TObjectPtr<ATerritory> Start, TObjectPtr<ATerritory> End) {
     /* Return Key:
      * 0: set start and end territories for attacking
      * 1: error, do not own starting territory
@@ -194,8 +185,8 @@ int8 AGameManager::SetAttack(TObjectPtr<ATerritory> Start, TObjectPtr<ATerritory
      * 3: error, territories are not connected
      * 4: error, do not have enough armies on starting territory */
     TObjectPtr<URiskPlayer> player = Players[Turn];
-    if (Start->Owner != player) return 1;
-    if (End->Owner == player) return 2;
+    if (Start->TerritoryOwner != player) return 1;
+    if (End->TerritoryOwner == player) return 2;
     if (!AreConnectedTerritories(Start, End)) return 3;
     if (Start->Armies < 2) return 4;
     TerrOne = Start;
@@ -203,7 +194,7 @@ int8 AGameManager::SetAttack(TObjectPtr<ATerritory> Start, TObjectPtr<ATerritory
     return 0;
 }
 
-int8 AGameManager::Attack(int8 playerOneDice, int8 playerTwoDice) {
+int32 AGameManager::Attack(int32 playerOneDice, int32 playerTwoDice) {
     /* Return Key:
      * 0: battle happened
      * 1: capture
@@ -221,8 +212,8 @@ int8 AGameManager::Attack(int8 playerOneDice, int8 playerTwoDice) {
     if (playerOneDice < 1 || playerTwoDice > 2) return 6;
     if (TerrTwo->Infantry < playerTwoDice) return 7;
     // attack
-    TArray<int8> playerOneRoll = RollDice(playerOneDice);
-    TArray<int8> playerTwoRoll = RollDice(playerTwoDice);
+    TArray<int32> playerOneRoll = RollDice(playerOneDice);
+    TArray<int32> playerTwoRoll = RollDice(playerTwoDice);
     // sort the rolls
     playerOneRoll.Sort();
     playerTwoRoll.Sort();
@@ -253,7 +244,7 @@ int8 AGameManager::Attack(int8 playerOneDice, int8 playerTwoDice) {
     }
     // if the opposing player has no more armies, then capture his territory
     if (TerrTwo->Armies == 0) {
-        int8 captureVal = CaptureTerritory(TerrTwo);
+        int32 captureVal = CaptureTerritory(TerrTwo);
         if (captureVal == 2) return 3;
         // note: the player needs to move a piece to the captured territory
         AttackArmies = playerOneDice;
@@ -262,11 +253,11 @@ int8 AGameManager::Attack(int8 playerOneDice, int8 playerTwoDice) {
     return 0;
 }
 
-int8 AGameManager::OccupyTerritory(const TArray<TCHAR>& Armies) {
+int32 AGameManager::OccupyTerritory(const TArray<TCHAR>& Armies) {
     /* Return Key:
      * 0: occupied the territory
      * 1: error, need as many armies as dice rolled to capture (AttackArmies) */
-    int8 movedArmies = 0;
+    int32 movedArmies = 0;
     for (TCHAR piece : Armies) {
         switch (piece) {
         case 'i':
@@ -286,15 +277,15 @@ int8 AGameManager::OccupyTerritory(const TArray<TCHAR>& Armies) {
     return 0;
 }
 
-int8 AGameManager::SetFortify(TObjectPtr<ATerritory> Start, TObjectPtr<ATerritory> End) {
+int32 AGameManager::SetFortify(TObjectPtr<ATerritory> Start, TObjectPtr<ATerritory> End) {
     /* Return Key:
      * 0: set start and end territories for fortify
      * 1: error, do not own starting territory
      * 2: error, do not own ending territory
      * 3: error, territories are not connected */
     TObjectPtr<URiskPlayer> player = Players[Turn];
-    if (Start->Owner != player) return 1;
-    if (End->Owner != player) return 2;
+    if (Start->TerritoryOwner != player) return 1;
+    if (End->TerritoryOwner != player) return 2;
     if (!AreConnectedTerritories(Start, End)) return 3;
     TerrOne = Start;
     TerrTwo = End;
@@ -302,8 +293,8 @@ int8 AGameManager::SetFortify(TObjectPtr<ATerritory> Start, TObjectPtr<ATerritor
 }
 
 void AGameManager::Fortify(const TArray<TCHAR>& Pieces) {
-    int8 value;
-    for (int8 i : Pieces) {
+    int32 value;
+    for (int32 i : Pieces) {
         // find the value of the piece and change the armies on territories
         switch (i) {
         case 'i':
@@ -340,9 +331,9 @@ void AGameManager::GiveCard() {
         DrawPile = DiscardPile;
         DiscardPile.Empty();
         // shuffle
-        int8 Temp;
+        int32 Temp;
         TObjectPtr<UCard> temp2;
-        for (int8 i = 0; i < DrawPile.Num() - 1; i++) {
+        for (int32 i = 0; i < DrawPile.Num() - 1; i++) {
             Temp = std::rand() % (DrawPile.Num() - i) + i;
             temp2 = DrawPile[i];
             DrawPile[i] = DrawPile[Temp];
@@ -351,7 +342,7 @@ void AGameManager::GiveCard() {
     }
 }
 
-int8 AGameManager::TradeCards(const TArray<int8>& CardsInd) {
+int32 AGameManager::TradeCards(const TArray<int32>& CardsInd) {
     /* Return Key:
      * 0: traded in cards
      * 1: error, cards do not form a set that can be traded */
@@ -360,11 +351,11 @@ int8 AGameManager::TradeCards(const TArray<int8>& CardsInd) {
     // if they own the territory, then 2 extra armies are placed there
     // however, this happens once per turn
     if (!bGotTradeBonus) {
-        for (int8 i = 0; i < 3; i++) {
+        for (int32 i = 0; i < 3; i++) {
             TObjectPtr<ATerritory> CardTerr = FindTerritory(Player->Cards[CardsInd[i]]
                 ->Territory);
             if (CardTerr == nullptr) continue; // wild card; has no territory
-            if (CardTerr->Owner == Player) {
+            if (CardTerr->TerritoryOwner == Player) {
                 bGotTradeBonus = true;
                 CardTerr->Armies += 2;
                 CardTerr->Infantry += 2;
@@ -408,9 +399,9 @@ int8 AGameManager::TradeCards(const TArray<int8>& CardsInd) {
 
 // returns nullptr if there is no owner
 TObjectPtr<URiskPlayer> AGameManager::FindContOwner(const TObjectPtr<UContinent> continent) const {
-    TObjectPtr<URiskPlayer> owner = continent->Territories[0]->Owner;
+    TObjectPtr<URiskPlayer> owner = continent->Territories[0]->TerritoryOwner;
     for (TObjectPtr<ATerritory> i : continent->Territories) {
-        if (i->Owner != owner) return nullptr;
+        if (i->TerritoryOwner != owner) return nullptr;
     }
     return owner;
 }
@@ -422,7 +413,7 @@ bool AGameManager::AreConnectedTerritories(const TObjectPtr<ATerritory> start, c
     return false;
 }
 
-int8 AGameManager::CaptureTerritory(TObjectPtr<ATerritory> Territory) {
+int32 AGameManager::CaptureTerritory(TObjectPtr<ATerritory> Territory) {
     /* Return Key:
      * 0: normal capture
      * 1: captured continent
@@ -430,12 +421,12 @@ int8 AGameManager::CaptureTerritory(TObjectPtr<ATerritory> Territory) {
      * 10: normal capture and eliminated a player
      * 11: captured continent and eliminated a player */
     bCaptured = true;
-    int8 returnType = 0;
+    int32 returnType = 0;
     TObjectPtr<URiskPlayer> player = Players[Turn];
-    TObjectPtr<URiskPlayer> prevOwner = Territory->Owner;
+    TObjectPtr<URiskPlayer> prevOwner = Territory->TerritoryOwner;
 
     // give the new player the territory and erase the old player's ownership
-    Territory->Owner = player;
+    Territory->TerritoryOwner = player;
     player->Territories.Add(Territory);
     prevOwner->Territories.Remove(Territory);
 
@@ -470,7 +461,7 @@ int8 AGameManager::CaptureTerritory(TObjectPtr<ATerritory> Territory) {
     }
 }
 
-bool AGameManager::IsValidTrade(const TArray<int8>& CardsInd) const {
+bool AGameManager::IsValidTrade(const TArray<int32>& CardsInd) const {
     // check for a wild card, matching armies, or disjoint armies
     TObjectPtr<URiskPlayer> player = Players[Turn];
     FString Card1 = player->Cards[CardsInd[0]]->Army;

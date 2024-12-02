@@ -20,5 +20,5 @@ public:
 	FString Name;
 	TObjectPtr<URiskPlayer> Owner;
 	TArray<TObjectPtr<ATerritory>> Territories;
-	int8 NewArmies;
+	int32 NewArmies;
 };

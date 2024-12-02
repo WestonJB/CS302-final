@@ -42,7 +42,7 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<UCard>> Cards;
 
-	int16 Armies;
+	int32 Armies;
 
 	void SetName(const FString& newName);
 	FString GetName() const;

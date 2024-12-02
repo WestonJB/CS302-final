@@ -21,14 +21,29 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UContinent> Continent;
-	TArray<ATerritory> NearTerritories;
-	TObjectPtr<URiskPlayer> Owner;
-	int8 Armies;
-	int8 Infantry;
-	int8 Cavalry;
-	int8 Artillery;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TObjectPtr<ATerritory>> NearTerritories;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<URiskPlayer> TerritoryOwner;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Armies;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Infantry;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Cavalry;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Artillery;
 
 protected:
 	// Called when the game starts or when spawned
