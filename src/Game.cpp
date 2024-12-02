@@ -6,7 +6,7 @@
 
 #include <typeinfo>
 
-// Note: does not work for 2 players
+// Note: does not work for 2 players (might be okay since Risk typically has 3 to 6 players)
 Game::Game(const std::vector<std::string> &names) : turn{-1}, terrOcc{0},
         terrOne{NULL}, terrTwo{NULL}, trades{0}, gotTradeBonus{false},
         attArm{0}, captured{true} {
