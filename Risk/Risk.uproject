@@ -24,7 +24,7 @@
 		},
 		{
 			"Name": "HexBlocksGame",
-			"Enabled": true,
+			"Enabled": false,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/2dddc328432841d588865cd82e73e1a6"
 		}
 	]
