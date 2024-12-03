@@ -21,7 +21,7 @@ enum Color {
 };
 
 class ATerritory;
-class UContinent;
+class AContinent;
 class Card;
 
 /**
@@ -33,15 +33,9 @@ class RISK_API URiskPlayer : public UObject
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
 	TArray<TObjectPtr<ATerritory>> Territories;
-
-	UPROPERTY()
-	TArray<TObjectPtr<UContinent>> Continents;
-
-	UPROPERTY()
+	TArray<TObjectPtr<AContinent>> Continents;
 	TArray<TObjectPtr<UCard>> Cards;
-
 	int32 Armies;
 
 	void SetName(const FString& newName);

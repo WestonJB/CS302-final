@@ -35,9 +35,10 @@ AGameManager::AGameManager() : Turn{ -1 }, TerritoriesOccupied{ 0 }, TerrOne{nul
     // we need to name the 6 continents [HERE]
     // allocate and name the territories
 
-    Continents.SetNum(6); // -------
+    // Old initialization code
+    /*Continents.SetNum(6); // -------
     for (int32 i = 0; i < Continents.Num(); ++i) {
-        Continents[i] = NewObject<UContinent>();
+        Continents[i] = NewObject<AContinent>();
         Continents[i]->NewArmies = 4;
         Continents[i]->Territories.SetNum(7);
         for (int32 j = 0; j < Continents[i]->Territories.Num(); ++j) {
@@ -46,7 +47,7 @@ AGameManager::AGameManager() : Turn{ -1 }, TerritoriesOccupied{ 0 }, TerrOne{nul
             Territory->Continent = Continents[i];
             Territory->Name = TerritoryNames[i][j];
         }
-    }
+    }*/
 
 
     // we need to set adjeceny lists HERE
@@ -102,9 +103,10 @@ int32 AGameManager::AddArmy(TObjectPtr<ATerritory> Territory) {
         Territory->Armies = 1;
         Territory->Infantry = 1;
         --(Player->Armies);
-        if (FindContOwner(Territory->Continent) == Player) {
-            Territory->Continent->Owner = Player;
-            Player->Continents.Add(Territory->Continent);
+        TObjectPtr<AContinent> Continent = dynamic_cast<AContinent*, AActor>(Territory->GetAttachParentActor());
+        if (FindContOwner(Continent) == Player) {
+            Continent->ContinentOwner = Player;
+            Player->Continents.Add(Continent);
         }
         ++TerritoriesOccupied;
     }
@@ -120,7 +122,7 @@ int32 AGameManager::AddArmy(TObjectPtr<ATerritory> Territory) {
 void AGameManager::GiveArmies() {
     TObjectPtr<URiskPlayer> player = Players[Turn];
     int32 newArmies = player->Territories.Num() / 3;
-    for (TObjectPtr<UContinent> i : player->Continents) newArmies += i->NewArmies;
+    for (TObjectPtr<AContinent> i : player->Continents) newArmies += i->NewArmies;
     if (3 < newArmies) player->Armies += newArmies;
     else player->Armies += 3;
 }
@@ -131,8 +133,8 @@ int32 AGameManager::TradeArmies(TObjectPtr<ATerritory> Territory, TCHAR startTyp
      * 1: error, do not own territory
      * 2: error, trading pieces for the same pieces (startType == endType)
      * 3: error, do not own enough pieces to trade */
-    TObjectPtr<URiskPlayer> player = Players[Turn];
-    if (Territory->TerritoryOwner != player) return 1;
+    TObjectPtr<URiskPlayer> Player = Players[Turn];
+    if (Territory->TerritoryOwner != Player) return 1;
     if (startType == endType) return 2;
     switch (startType) {
     case 'i':
@@ -398,19 +400,18 @@ int32 AGameManager::TradeCards(const TArray<int32>& CardsInd) {
 }
 
 // returns nullptr if there is no owner
-TObjectPtr<URiskPlayer> AGameManager::FindContOwner(const TObjectPtr<UContinent> continent) const {
-    TObjectPtr<URiskPlayer> owner = continent->Territories[0]->TerritoryOwner;
-    for (TObjectPtr<ATerritory> i : continent->Territories) {
-        if (i->TerritoryOwner != owner) return nullptr;
+TObjectPtr<URiskPlayer> AGameManager::FindContOwner(const TObjectPtr<AContinent> continent) const {
+    TArray<AActor *> Territories;
+    continent->GetAttachedActors(Territories);
+    TObjectPtr<URiskPlayer> OwningPlayer = dynamic_cast<ATerritory*, AActor>(Territories[0])->TerritoryOwner;
+    for (AActor* Territory : Territories) {
+        if (dynamic_cast<ATerritory*, AActor>(Territory)->TerritoryOwner != OwningPlayer) return nullptr;
     }
-    return owner;
+    return OwningPlayer;
 }
 
-bool AGameManager::AreConnectedTerritories(const TObjectPtr<ATerritory> start, const TObjectPtr<ATerritory> end) const {
-    for (TObjectPtr<ATerritory> terr : start->NearTerritories) {
-        if (terr == end) return true;
-    }
-    return false;
+bool AGameManager::AreConnectedTerritories(const TObjectPtr<ATerritory> Start, const TObjectPtr<ATerritory> End) const {
+    return Start->NearTerritories.Contains(End);
 }
 
 int32 AGameManager::CaptureTerritory(TObjectPtr<ATerritory> Territory) {
@@ -431,15 +432,16 @@ int32 AGameManager::CaptureTerritory(TObjectPtr<ATerritory> Territory) {
     prevOwner->Territories.Remove(Territory);
 
     // if the old player owns the continent, remove their ownership there
-    if (Territory->Continent->Owner == prevOwner) {
-        Territory->Continent->Owner = nullptr;
-        prevOwner->Continents.Remove(Territory->Continent);
+    TObjectPtr<AContinent> Continent = dynamic_cast<AContinent*, AActor>(Territory->GetAttachParentActor());
+    if (Continent->ContinentOwner == prevOwner) {
+        Continent->ContinentOwner = nullptr;
+        prevOwner->Continents.Remove(Continent);
     }
 
     // if the player now owns the continent, add ownership
-    if (FindContOwner(Territory->Continent) == player) {
-        Territory->Continent->Owner = player;
-        player->Continents.Add(Territory->Continent);
+    if (FindContOwner(Continent) == player) {
+        Continent->ContinentOwner = player;
+        player->Continents.Add(Continent);
         // check if they have every continent
         if (player->Continents.Num() == 6) return 2; // -------
         returnType = 1;
@@ -476,9 +478,13 @@ bool AGameManager::IsValidTrade(const TArray<int32>& CardsInd) const {
 }
 
 TObjectPtr<ATerritory> AGameManager::FindTerritory(const FString& name) const {
-    for (TObjectPtr<UContinent> Cont : Continents) {
-        for (TObjectPtr<ATerritory> Terr : Cont->Territories) {
-            if (Terr->Name == name) return Terr;
+    for (TObjectPtr<AContinent> Continent : Continents) {
+        TArray<AActor*> Territories;
+        Continent->GetAttachedActors(Territories);
+        for (AActor* Territory : Territories) {
+            if (Territory->GetName() == name) {
+                return dynamic_cast<ATerritory*, AActor>(Territory);
+            }
         }
     }
     // should only happen for wild cards

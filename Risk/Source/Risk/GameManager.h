@@ -7,7 +7,7 @@
 #include "GameManager.generated.h"
 
 class URiskPlayer;
-class UContinent;
+class AContinent;
 class ATerritory;
 class UCard;
 
@@ -47,7 +47,7 @@ public:
 	TArray<TObjectPtr<URiskPlayer>> Players;
 
 protected:
-	TArray<TObjectPtr<UContinent>> Continents;
+	TArray<TObjectPtr<AContinent>> Continents;
 	int32 Turn;
 	int32 TerritoriesOccupied;
 
@@ -61,7 +61,7 @@ protected:
 	int32 AttackArmies;
 	bool bCaptured;
 
-	TObjectPtr<URiskPlayer> FindContOwner(const TObjectPtr<UContinent> continent) const;
+	TObjectPtr<URiskPlayer> FindContOwner(const TObjectPtr<AContinent> continent) const;
 	bool AreConnectedTerritories(const TObjectPtr<ATerritory> start, const TObjectPtr<ATerritory> end) const;
 	int32 CaptureTerritory(TObjectPtr<ATerritory> territory);
 	bool IsValidTrade(const TArray<int32>& cardsInd) const;

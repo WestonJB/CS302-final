@@ -7,7 +7,7 @@
 #include "Territory.generated.h"
 
 class URiskPlayer;
-class UContinent;
+class AContinent;
 
 UCLASS()
 class RISK_API ATerritory : public AActor
@@ -22,27 +22,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString Name;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UContinent> Continent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TObjectPtr<ATerritory>> NearTerritories;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<URiskPlayer> TerritoryOwner;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Armies;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Infantry;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Cavalry;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Artillery;
 
 protected:

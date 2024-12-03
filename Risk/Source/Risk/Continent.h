@@ -10,15 +10,22 @@ class URiskPlayer;
 class ATerritory;
 
 UCLASS()
-class UContinent : public UObject
+class AContinent : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	UContinent();
+	AContinent();
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 	
-	FString Name;
-	TObjectPtr<URiskPlayer> Owner;
-	TArray<TObjectPtr<ATerritory>> Territories;
+	TObjectPtr<URiskPlayer> ContinentOwner;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int32 NewArmies;
+
+private:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 };
