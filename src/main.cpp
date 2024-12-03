@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 	//determine who goes first from rolls of a 6-sided die
 	int maxDice = 0;
 	std::vector<std::string> maxPlayer;
-	for(player : playerNames){
+	for(std::string player : playerNames){
 		int roll = std::rand() % 6 + 1;
 		if(roll > maxDice){
 			maxDice = roll;
