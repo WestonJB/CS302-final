@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 	// if there is a tie, make the people with the die roll again
 	// start giving out territories starting with the winner of the roll
 
-/*********************************************JOSEF CODE***************************************/
+
 	//determine who goes first from rolls of a 6-sided die
 	int maxDice = 0;
 	std::vector<std::string> maxPlayer;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 	int index = std::rand() % playerNames.size();
  	string playerOne = playerNames[index];
  */
-/*********************************************END JOSEF CODE*****************************************/
+
 
 	//////////////
 	// GAMEPLAY //
