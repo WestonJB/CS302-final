@@ -21,6 +21,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UStaticMeshComponent* PreviousTerritoryMesh;
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -41,9 +43,6 @@ public:
 	void MouseUp();
 	void MouseDown();
 	void LeftClick();
-
-	UPROPERTY(BluePrintReadWrite, EditAnywhere)
-	APawn* CameraPawn;
 
 	UPROPERTY(BluePrintReadWrite, EditAnywhere)
 	FVector CameraMovement;

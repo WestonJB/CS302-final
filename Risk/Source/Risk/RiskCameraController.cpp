@@ -3,12 +3,13 @@
 
 #include "RiskCameraController.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Territory.h"
 #include "CameraPawn.h"
 #include "GameFramework/SpringArmComponent.h"
 
 typedef UKismetMathLibrary Math;
 
-ARiskCameraController::ARiskCameraController() : CameraZoom{ 1 }
+ARiskCameraController::ARiskCameraController() : CameraZoom{ 1 }, PreviousTerritoryMesh{ nullptr }
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -33,16 +34,24 @@ void ARiskCameraController::Tick(float DeltaTime)
 	GetViewportSize(ScreenX, ScreenY);
 	GetMousePosition(MouseX, MouseY);
 
+	// Get speed from each side of viewport
 	double MouseRight = 1 - FMath::Clamp(Math::NormalizeToRange(MouseX, 0, 0.1 * ScreenX), 0, 1);
 	double MouseLeft = -FMath::Clamp(Math::NormalizeToRange(MouseX, 0.9 * ScreenX, ScreenX), 0 , 1);
 	double MouseUp = 1 - FMath::Clamp(Math::NormalizeToRange(MouseY, 0, 0.1 * ScreenX), 0, 1);
 	double MouseDown = -FMath::Clamp(Math::NormalizeToRange(MouseY, 0.9 * ScreenX, ScreenX), 0, 1);
 
+	// Create movement vector
 	FVector MouseMovement = FVector(MouseRight + MouseLeft, MouseUp + MouseDown, 0);
 
+	// Turn into speed using lerp
 	FVector MouseSpeed = (CameraMovement.GetSafeNormal() - MouseMovement).GetClampedToSize(0, 1) * Math::Lerp(7, 30, CameraZoom);
 
-	GetPawn()->SetActorLocation(GetPawn()->GetActorLocation() + MouseSpeed);
+	// Clamp coordinates
+	double XPosition = FMath::Clamp(MouseSpeed.X + GetPawn()->GetActorLocation().X, -2500, 2500);
+	double YPosition = FMath::Clamp(MouseSpeed.Y + GetPawn()->GetActorLocation().Y, -2250, 2250);
+
+	// Set new location
+	GetPawn()->SetActorLocation(FVector(XPosition, YPosition, 0));
 
 	Cast<ACameraPawn>(GetPawn())->SpringArm->TargetArmLength = Math::Lerp(400, 2000, CameraZoom);
 
@@ -107,19 +116,33 @@ void ARiskCameraController::DownRelease()
 
 void ARiskCameraController::MouseUp()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Red, FString::Printf(TEXT("%f"), CameraZoom));
 	CameraZoom = FMath::Clamp(CameraZoom - 0.1, 0.0, 1.0);
 }
 
 void ARiskCameraController::MouseDown()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Red, FString::Printf(TEXT("%f"), CameraZoom));
 	CameraZoom = FMath::Clamp(CameraZoom + 0.1, 0.0, 1.0);
 }
 
 void ARiskCameraController::LeftClick()
 {
 	FHitResult OutHitResult;
-	GetHitResultUnderCursor(ECC_WorldStatic, false, OutHitResult);
-	GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Red, OutHitResult.GetActor()->GetName());
+	if (GetHitResultUnderCursor(ECC_WorldStatic, false, OutHitResult))
+	{
+		if (PreviousTerritoryMesh != nullptr)
+		{
+			PreviousTerritoryMesh->SetCustomDepthStencilValue(0);
+		}
+		if (OutHitResult.GetActor()->GetClass()->GetSuperClass()->GetName() == "Territory")
+		{
+			UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(OutHitResult.GetActor()->GetDefaultAttachComponent());
+
+			Mesh->SetCustomDepthStencilValue(1);
+			PreviousTerritoryMesh = Mesh;
+		}
+		else
+		{
+			PreviousTerritoryMesh = nullptr;
+		}
+	}
 }
