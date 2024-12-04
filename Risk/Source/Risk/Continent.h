@@ -21,9 +21,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	TObjectPtr<URiskPlayer> ContinentOwner;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	int32 NewArmies;
 
 private:
 	// Called when the game starts or when spawned

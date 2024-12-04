@@ -10,6 +10,7 @@ class URiskPlayer;
 class AContinent;
 class ATerritory;
 class UCard;
+class AArmy;
 
 UCLASS()
 class RISK_API AGameManager : public AActor
@@ -33,10 +34,10 @@ public:
 
 	int32 SetAttack(TObjectPtr<ATerritory> start, TObjectPtr<ATerritory> end);
 	int32 Attack(int32 playerOneDice, int32 playerTwoDice);
-	int32 OccupyTerritory(const TArray<TCHAR>& armies);
+	int32 OccupyTerritory(const TArray<TObjectPtr<AArmy>> Armies);
 
 	int32 SetFortify(TObjectPtr<ATerritory> start, TObjectPtr<ATerritory> end);
-	void Fortify(const TArray<TCHAR>& armies);
+	void Fortify(const TArray<TObjectPtr<AArmy>> Armies);
 
 	void GiveCard();
 	int32 TradeCards(const TArray<int32>& cardsInd);

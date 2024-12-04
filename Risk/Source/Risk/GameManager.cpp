@@ -5,6 +5,7 @@
 #include "RiskPlayer.h"
 #include "Continent.h"
 #include "Territory.h"
+#include "Army.h"
 #include "Card.h"
 
 // Sets default values
@@ -100,8 +101,7 @@ int32 AGameManager::AddArmy(TObjectPtr<ATerritory> Territory) {
         if (Territory->TerritoryOwner != nullptr) return 1;
         Territory->TerritoryOwner = Player;
         Player->Territories.Add(Territory);
-        Territory->Armies = 1;
-        Territory->Infantry = 1;
+        Territory->InitArmies();
         --(Player->Armies);
         TObjectPtr<AContinent> Continent = dynamic_cast<AContinent*, AActor>(Territory->GetAttachParentActor());
         if (FindContOwner(Continent) == Player) {
@@ -112,8 +112,7 @@ int32 AGameManager::AddArmy(TObjectPtr<ATerritory> Territory) {
     }
     else {
         if (Territory->TerritoryOwner != Player) return 2;
-        ++Territory->Armies;
-        ++Territory->Infantry;
+        Territory->AddInfantry(1);
         --Player->Armies; // unnecessary after the setup of the game
     }
     return 0;
@@ -122,7 +121,7 @@ int32 AGameManager::AddArmy(TObjectPtr<ATerritory> Territory) {
 void AGameManager::GiveArmies() {
     TObjectPtr<URiskPlayer> player = Players[Turn];
     int32 newArmies = player->Territories.Num() / 3;
-    for (TObjectPtr<AContinent> i : player->Continents) newArmies += i->NewArmies;
+    for (TObjectPtr<AContinent> i : player->Continents) newArmies += 4;
     if (3 < newArmies) player->Armies += newArmies;
     else player->Armies += 3;
 }
@@ -140,38 +139,38 @@ int32 AGameManager::TradeArmies(TObjectPtr<ATerritory> Territory, TCHAR startTyp
     case 'i':
         switch (endType) {
         case 'c':
-            if (Territory->Infantry < 5) return 3;
-            Territory->Infantry -= 5;
-            ++Territory->Cavalry;
+            if (Territory->GetInfantry() < 5) return 3;
+            Territory->AddInfantry(-5);
+            Territory->AddCavalry(1);
             break;
         case 'a':
-            if (Territory->Infantry < 10) return 3;
-            Territory->Infantry -= 10;
-            ++Territory->Artillery;
+            if (Territory->GetInfantry() < 10) return 3;
+            Territory->AddInfantry(-10);
+            Territory->AddArtillery(1);
             break;
         }
         break;
     case 'c':
         switch (endType) {
         case 'i':
-            --Territory->Cavalry;
-            Territory->Infantry += 5;
+            Territory->AddCavalry(-1);
+            Territory->AddInfantry(5);
             break;
         case 'a':
-            if (Territory->Cavalry < 2) return 3;
-            Territory->Cavalry -= 2;
-            ++Territory->Artillery;
+            if (Territory->GetCavalry() < 2) return 3;
+            Territory->AddCavalry(2);
+            Territory->AddArtillery(1);
             break;
         }
         break;
     case 'a':
         switch (endType) {
-            --Territory->Artillery;
+            Territory->AddArtillery(-1);
         case 'i':
-            Territory->Infantry += 10;
+            Territory->AddInfantry(10);
             break;
         case 'c':
-            Territory->Cavalry += 2;
+            Territory->AddCavalry(2);
             break;
         }
         break;
@@ -190,13 +189,13 @@ int32 AGameManager::SetAttack(TObjectPtr<ATerritory> Start, TObjectPtr<ATerritor
     if (Start->TerritoryOwner != player) return 1;
     if (End->TerritoryOwner == player) return 2;
     if (!AreConnectedTerritories(Start, End)) return 3;
-    if (Start->Armies < 2) return 4;
+    if (Start->GetArmies() < 2) return 4;
     TerrOne = Start;
     TerrTwo = End;
     return 0;
 }
 
-int32 AGameManager::Attack(int32 playerOneDice, int32 playerTwoDice) {
+int32 AGameManager::Attack(int32 PlayerOneDice, int32 PlayerTwoDice) {
     /* Return Key:
      * 0: battle happened
      * 1: capture
@@ -209,71 +208,69 @@ int32 AGameManager::Attack(int32 playerOneDice, int32 playerTwoDice) {
      * 6: error, player two must roll 1-2 dice
      * 7: error, player two must have at least one infantry per die */
      // some error checking
-    if (playerOneDice < 1 || playerOneDice > 3) return 4;
-    if (TerrOne->Infantry < playerOneDice + 1) return 5;
-    if (playerOneDice < 1 || playerTwoDice > 2) return 6;
-    if (TerrTwo->Infantry < playerTwoDice) return 7;
+    if (PlayerOneDice < 1 || PlayerOneDice > 3) return 4;
+    if (TerrOne->GetInfantry() < PlayerOneDice + 1) return 5;
+    if (PlayerOneDice < 1 || PlayerTwoDice > 2) return 6;
+    if (TerrTwo->GetInfantry() < PlayerTwoDice) return 7;
+
     // attack
-    TArray<int32> playerOneRoll = RollDice(playerOneDice);
-    TArray<int32> playerTwoRoll = RollDice(playerTwoDice);
+    TArray<int32> PlayerOneRoll = RollDice(PlayerOneDice);
+    TArray<int32> PlayerTwoRoll = RollDice(PlayerTwoDice);
+
     // sort the rolls
-    playerOneRoll.Sort();
-    playerTwoRoll.Sort();
+    PlayerOneRoll.Sort();
+    PlayerTwoRoll.Sort();
+
     // compare the two highest rolls
-    if (playerOneRoll[playerOneDice - 1] > playerTwoRoll[playerTwoDice - 1]) {
+    if (PlayerOneRoll[PlayerOneDice - 1] > PlayerTwoRoll[PlayerTwoDice - 1]) {
         // player one wins the battle
-        --TerrTwo->Infantry;
-        --TerrTwo->Armies;
+        TerrTwo->AddInfantry(-1);
     }
     else {
         // player two wins the battle
-        --TerrOne->Infantry;
-        --TerrOne->Armies;
+        TerrOne->AddInfantry(-1);
     }
     // see if there is another battle to compare and compare the second highest
-    if (playerOneDice > 1 && playerTwoDice > 1) {
-        if (playerOneRoll[playerOneDice - 2]
-            > playerTwoRoll[playerTwoDice - 2]) {
+    if (PlayerOneDice > 1 && PlayerTwoDice > 1) {
+        if (PlayerOneRoll[PlayerOneDice - 2]
+            > PlayerTwoRoll[PlayerTwoDice - 2]) {
             // player one wins the battle
-            --TerrTwo->Infantry;
-            --TerrTwo->Armies;
+            TerrTwo->AddInfantry(-1);
         }
         else {
             // player two wins the battle
-            --TerrOne->Infantry;
-            --TerrOne->Armies;
+            TerrOne->AddInfantry(-1);
         }
     }
     // if the opposing player has no more armies, then capture his territory
-    if (TerrTwo->Armies == 0) {
-        int32 captureVal = CaptureTerritory(TerrTwo);
-        if (captureVal == 2) return 3;
+    if (TerrTwo->GetArmies() == 0) {
+        int32 CaptureVal = CaptureTerritory(TerrTwo);
+        if (CaptureVal == 2) return 3;
         // note: the player needs to move a piece to the captured territory
-        AttackArmies = playerOneDice;
-        return captureVal + 1;
+        AttackArmies = PlayerOneDice;
+        return CaptureVal + 1;
     }
     return 0;
 }
 
-int32 AGameManager::OccupyTerritory(const TArray<TCHAR>& Armies) {
+int32 AGameManager::OccupyTerritory(const TArray<TObjectPtr<AArmy>> Armies) {
     /* Return Key:
      * 0: occupied the territory
      * 1: error, need as many armies as dice rolled to capture (AttackArmies) */
-    int32 movedArmies = 0;
-    for (TCHAR piece : Armies) {
-        switch (piece) {
-        case 'i':
-            movedArmies += 1;
-            break;
-        case 'c':
-            movedArmies += 5;
-            break;
-        case 'a':
-            movedArmies += 10;
-            break;
+    int32 MovedArmies = 0;
+    for (TObjectPtr<AArmy> Army : Armies) {
+        FString ArmyName = Army->GetClass()->GetName();
+        if (ArmyName == "BP_Infantry_C") {
+            MovedArmies += 1;
+        }
+        else if (ArmyName == "BP_Cavalry_C") {
+            MovedArmies += 5;
+        }
+        else if (ArmyName == "BP_Artillery_C") {
+            MovedArmies += 10;
         }
     }
-    if (movedArmies < AttackArmies) return 1;
+    if (MovedArmies < AttackArmies) return 1;
     Fortify(Armies);
     AttackArmies = 0;
     return 0;
@@ -294,33 +291,28 @@ int32 AGameManager::SetFortify(TObjectPtr<ATerritory> Start, TObjectPtr<ATerrito
     return 0;
 }
 
-void AGameManager::Fortify(const TArray<TCHAR>& Pieces) {
-    int32 value;
-    for (int32 i : Pieces) {
+void AGameManager::Fortify(const TArray<TObjectPtr<AArmy>> Armies) {
+    int32 Value;
+    for (TObjectPtr<AArmy> Army : Armies) {
         // find the value of the piece and change the armies on territories
-        switch (i) {
-        case 'i':
-            value = 1;
-            TerrOne->Infantry -= 1;
-            TerrTwo->Infantry += 1;
-            break;
-        case 'c':
-            value = 5;
-            TerrOne->Cavalry -= 1;
-            TerrTwo->Cavalry += 1;
-            break;
-        case 'a':
-            value = 10;
-            TerrOne->Artillery -= 1;
-            TerrTwo->Artillery += 1;
-            break;
-            // this should never run
-        default:
-            value = 1;
-            break;
+        FString ArmyName = Army->GetClass()->GetName();
+        if (ArmyName == "BP_Infantry_C") {
+            Value = 1;
+            TerrOne->AddInfantry(-1);
+            TerrTwo->AddInfantry(1);
         }
-        TerrOne->Armies -= value;
-        TerrTwo->Armies += value;
+        else if (ArmyName == "BP_Cavalry_C") {
+            Value = 5;
+            TerrOne->AddCavalry(-1);
+            TerrTwo->AddCavalry(1);
+        }
+        else if (ArmyName == "BP_Artillery_C") {
+            Value = 10;
+            TerrOne->AddArtillery(-1);
+            TerrTwo->AddArtillery(1);
+        } else {
+            Value = 1;
+        }
     }
 }
 
@@ -334,12 +326,12 @@ void AGameManager::GiveCard() {
         DiscardPile.Empty();
         // shuffle
         int32 Temp;
-        TObjectPtr<UCard> temp2;
+        TObjectPtr<UCard> Temp2;
         for (int32 i = 0; i < DrawPile.Num() - 1; i++) {
             Temp = std::rand() % (DrawPile.Num() - i) + i;
-            temp2 = DrawPile[i];
+            Temp2 = DrawPile[i];
             DrawPile[i] = DrawPile[Temp];
-            DrawPile[Temp] = temp2;
+            DrawPile[Temp] = Temp2;
         }
     }
 }
@@ -359,8 +351,7 @@ int32 AGameManager::TradeCards(const TArray<int32>& CardsInd) {
             if (CardTerr == nullptr) continue; // wild card; has no territory
             if (CardTerr->TerritoryOwner == Player) {
                 bGotTradeBonus = true;
-                CardTerr->Armies += 2;
-                CardTerr->Infantry += 2;
+                CardTerr->AddInfantry(2);
                 break;
             }
         }
@@ -403,9 +394,9 @@ int32 AGameManager::TradeCards(const TArray<int32>& CardsInd) {
 TObjectPtr<URiskPlayer> AGameManager::FindContOwner(const TObjectPtr<AContinent> continent) const {
     TArray<AActor *> Territories;
     continent->GetAttachedActors(Territories);
-    TObjectPtr<URiskPlayer> OwningPlayer = dynamic_cast<ATerritory*, AActor>(Territories[0])->TerritoryOwner;
+    TObjectPtr<URiskPlayer> OwningPlayer = Cast<ATerritory>(Territories[0])->TerritoryOwner;
     for (AActor* Territory : Territories) {
-        if (dynamic_cast<ATerritory*, AActor>(Territory)->TerritoryOwner != OwningPlayer) return nullptr;
+        if (Cast<ATerritory>(Territory)->TerritoryOwner != OwningPlayer) return nullptr;
     }
     return OwningPlayer;
 }
@@ -432,7 +423,7 @@ int32 AGameManager::CaptureTerritory(TObjectPtr<ATerritory> Territory) {
     prevOwner->Territories.Remove(Territory);
 
     // if the old player owns the continent, remove their ownership there
-    TObjectPtr<AContinent> Continent = dynamic_cast<AContinent*, AActor>(Territory->GetAttachParentActor());
+    TObjectPtr<AContinent> Continent = Cast<AContinent>(Territory->GetAttachParentActor());
     if (Continent->ContinentOwner == prevOwner) {
         Continent->ContinentOwner = nullptr;
         prevOwner->Continents.Remove(Continent);
@@ -483,7 +474,7 @@ TObjectPtr<ATerritory> AGameManager::FindTerritory(const FString& name) const {
         Continent->GetAttachedActors(Territories);
         for (AActor* Territory : Territories) {
             if (Territory->GetName() == name) {
-                return dynamic_cast<ATerritory*, AActor>(Territory);
+                return Cast<ATerritory>(Territory);
             }
         }
     }
