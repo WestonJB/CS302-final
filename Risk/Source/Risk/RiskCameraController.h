@@ -21,13 +21,18 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UStaticMeshComponent* PreviousTerritoryMesh;
+
+	AActor* SelectedActor;
+	AActor* HighlightedActor;
 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupInputComponent() override;
+
+	void MoveCamera();
+	void HighlightTerritory();
 
 	// Keyboard
 	void LeftPress();
