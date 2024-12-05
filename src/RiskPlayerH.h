@@ -21,7 +21,7 @@ enum class EPlayerColor : uint8
 }; //6 colors available, as there can be at most 6 players in Risk
 
 UCLASS(Blueprintable)
-class YOURPROJECT_API UPlayer : public UObject
+class RISK UPlayer : public UObject
 {
     GENERATED_BODY()
 
