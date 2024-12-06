@@ -67,10 +67,6 @@ TArray<int32> AGameManager::RollDice(int32 NumDice) const {
     return Rolls;
 }
 
-void AGameManager::SetTurn(int32 NewTurn) { Turn = NewTurn; }
-
-int32 AGameManager::GetTurn() const { return Turn; }
-
 void AGameManager::EndTurn() {
     TerrOne = nullptr;
     TerrTwo = nullptr;

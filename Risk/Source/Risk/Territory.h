@@ -32,16 +32,16 @@ public:
 	int32 GetArtillery() const;
 
 	// Adds infantry and updates number of armies
-	void AddInfantry(int32 Num);
+	void AddInfantry(int32 Num, FVector Location);
 
 	// Adds cavalry and updates number of armies
-	void AddCavalry(int32 Num);
+	void AddCavalry(int32 Num, FVector Location);
 
 	// Adds artillery and updates number of armies
-	void AddArtillery(int32 Num);
+	void AddArtillery(int32 Num, FVector Location);
 
 	// Resets territory to 1 infantry
-	void InitArmies();
+	void InitArmies(FVector Location);
 
 
 protected:

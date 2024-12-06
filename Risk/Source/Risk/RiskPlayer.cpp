@@ -13,12 +13,12 @@ FString URiskPlayer::GetName() const
 	return Name;
 }
 
-void URiskPlayer::SetColor(Color newColor)
+void URiskPlayer::SetColor(EPlayerColor newColor)
 {
 	PlayerColor = newColor;
 }
 
-Color URiskPlayer::GetColor() const
+EPlayerColor URiskPlayer::GetColor() const
 {
 	return PlayerColor;
 }

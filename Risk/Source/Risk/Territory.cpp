@@ -45,25 +45,25 @@ int32 ATerritory::GetArtillery() const
 	return Artillery;
 }
 
-void ATerritory::AddInfantry(int32 Num)
+void ATerritory::AddInfantry(int32 Num, FVector Location)
 {
 	Armies += Num;
 	Infantry += Num;
 }
 
-void ATerritory::AddCavalry(int32 Num)
+void ATerritory::AddCavalry(int32 Num, FVector Location)
 {
 	Armies += 5 * Num;
 	Cavalry += Num;
 }
 
-void ATerritory::AddArtillery(int32 Num)
+void ATerritory::AddArtillery(int32 Num, FVector Location)
 {
 	Armies += 10 * Num;
 	Artillery += Num;
 }
 
-void ATerritory::InitArmies()
+void ATerritory::InitArmies(FVector Location)
 {
 	Armies = 1;
 	Infantry = 1;

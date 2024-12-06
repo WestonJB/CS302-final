@@ -23,8 +23,6 @@ public:
 	TArray<FString> GetNames();
 
 	TArray<int32> RollDice(int32 numDice) const;
-	void SetTurn(int32 newTurn);
-	int32 GetTurn() const;
 	void EndTurn();
 
 	bool SetupFinished() const;

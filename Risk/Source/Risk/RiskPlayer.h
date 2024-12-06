@@ -7,17 +7,13 @@
 #include "Card.h"
 #include "RiskPlayer.generated.h"
 
-enum Color {
-	red,
-	orange,
-	yellow,
-	green,
-	blue,
-	purple,
-	pink,
-	white,
-	black,
-	grey
+UENUM()
+enum class EPlayerColor : uint8
+{
+	Red,
+	Blue,
+	Green,
+	Orange
 };
 
 class ATerritory;
@@ -40,10 +36,10 @@ public:
 
 	void SetName(const FString& newName);
 	FString GetName() const;
-	void SetColor(Color newColor);
-	Color GetColor() const;
+	void SetColor(EPlayerColor newColor);
+	EPlayerColor GetColor() const;
 
 private:
 	FString Name;
-	Color PlayerColor;
+	EPlayerColor PlayerColor;
 };
