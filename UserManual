@@ -1,0 +1,11 @@
+RUNNING THE CODE
+This game is coded with Unreal Engine 5.4.4. The code is in the following Github repository:
+https://github.com/WestonJB/CS302-final
+To compile this program, one needs to download UE 5.4.4 and open CS302-final/Risk/Risk.uproject.
+From there, the code can be compiled and ran in UE.
+
+CONTROLS
+The controls are WASD to move the camera around. Asides from that, everything is done intuitively
+by clicking with the mouse.
+
+There are no known bugs.
