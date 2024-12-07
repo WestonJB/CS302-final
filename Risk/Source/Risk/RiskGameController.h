@@ -55,6 +55,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetNumArmies();
+<<<<<<< HEAD
+=======
+
+>>>>>>> 365c4165e796b381dc67f9cd438fc2d7de0a51ed
 	URiskPlayer* FindContOwner(const AContinent* Continent) const;
 	bool AreConnectedTerritories(const ATerritory* Start, const ATerritory* End) const;
 	int32 CaptureTerritory(ATerritory* Territory);
