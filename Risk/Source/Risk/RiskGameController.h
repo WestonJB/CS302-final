@@ -11,16 +11,6 @@ class ATerritory;
 class AArmy;
 class URiskPlayer;
 
-enum class EGameState : int8
-{
-	Neutral,
-	PlaceArmies,
-	SelectOne,
-	SelectTwo,
-	Occupy,
-	ArmySelected,
-};
-
 /**
  * 
  */
@@ -55,10 +45,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetNumArmies();
-<<<<<<< HEAD
-=======
 
->>>>>>> 365c4165e796b381dc67f9cd438fc2d7de0a51ed
 	URiskPlayer* FindContOwner(const AContinent* Continent) const;
 	bool AreConnectedTerritories(const ATerritory* Start, const ATerritory* End) const;
 	int32 CaptureTerritory(ATerritory* Territory);
@@ -87,6 +74,14 @@ public:
 	UPROPERTY(BluePrintReadWrite, EditAnywhere)
 	URiskPlayer* CurrentPlayer;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+
+	bool bGameStateUpdate;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+
+	int32 GameState;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -94,9 +89,7 @@ protected:
 	AActor* SelectedActor;
 	AActor* HighlightedActor;
 	AArmy* SelectedArmy;
-	EGameState GameState;
-	EGameState PreviousGameState;
-	bool bGameStateUpdate;
+	int32 PreviousGameState;
 
 	int32 Turn;
 	int32 TerritoriesOccupied;

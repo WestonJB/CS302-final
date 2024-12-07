@@ -13,7 +13,7 @@ typedef UKismetMathLibrary Math;
 
 // Internal
 
-ARiskGameController::ARiskGameController() : CameraZoom{ 1 }, SelectedActor{ nullptr }, GameState{ 0 }, bGameStateUpdate{ false }
+ARiskGameController::ARiskGameController() : CameraZoom{ 1 }, SelectedActor{ nullptr }, GameState{ 1 }, bGameStateUpdate{ false }
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -41,15 +41,15 @@ void ARiskGameController::Tick(float DeltaTime)
 	MoveCamera();
 	switch (GameState)
 	{
-	case EGameState::Neutral:
+	case 0:
 		break;
-	case EGameState::PlaceArmies:
-	case EGameState::SelectOne:
-	case EGameState::SelectTwo:
-	case EGameState::Occupy:
+	case 1:
+	case 2:
+	case 3:
+	case 4:
 		HighlightTerritory();
 		break;
-	case EGameState::ArmySelected:
+	case 5:
 		MoveArmy();
 		break;
 	default:
@@ -427,7 +427,7 @@ void ARiskGameController::DownRelease()
 void ARiskGameController::MouseUp()
 {
 	// Rotate army if selected
-	if (GameState == EGameState::ArmySelected) {
+	if (GameState == 5) {
 		SelectedArmy->AddActorWorldRotation(FRotator(0, -30, 0).Quaternion());
 	}
 	// Zoom if otherwise
@@ -440,7 +440,7 @@ void ARiskGameController::MouseUp()
 void ARiskGameController::MouseDown()
 {
 	// Rotate army if selected
-	if (GameState == EGameState::ArmySelected)
+	if (GameState == 5)
 	{
 		SelectedArmy->AddActorWorldRotation(FRotator(0, 30, 0).Quaternion());
 	}
@@ -453,7 +453,7 @@ void ARiskGameController::MouseDown()
 
 void ARiskGameController::LeftClick()
 {
-	if (GameState == EGameState::Neutral) {
+	if (GameState == 0) {
 		return;
 	}
 
@@ -464,28 +464,32 @@ void ARiskGameController::LeftClick()
 	}
 	AActor* Actor = OutHitResult.GetActor();
 
+	SelectTerritory(Actor);
+
 	if (Actor->GetClass()->GetSuperClass()->GetName() == "Army")
 	{
 		PreviousGameState = GameState;
-		GameState = EGameState::ArmySelected; // Army Selected
+		GameState = 5; // Army Selected
 		SelectedArmy = Cast<AArmy>(Actor);
 		SelectTerritory(Actor->GetAttachParentActor());
 	}
-	else
+	
+		return;
+	/*
 	{
 		SelectTerritory(Actor);
 		switch (GameState)
 		{
-		case EGameState::PlaceArmies:
+		case 1:
 			AddArmy(Cast<ATerritory>(Actor), OutHitResult.Location);
 			break;
-		case EGameState::SelectOne:
+		case 2:
 			TerrOne = Cast<ATerritory>(Actor);
 			break;
-		case EGameState::SelectTwo:
+		case 3:
 			TerrTwo = Cast<ATerritory>(Actor);
 			break;
-		case EGameState::Occupy:
+		case 4:
 			if (OutHitResult.GetActor() == TerrTwo)
 			{
 				TerrOne->RemoveArmy();
@@ -497,11 +501,12 @@ void ARiskGameController::LeftClick()
 		}
 		bGameStateUpdate = true;
 	}
+	*/
 }
 
 void ARiskGameController::LeftClickRelease()
 {
-	if (GameState == EGameState::ArmySelected) {
+	if (GameState == 5) {
 		GameState = PreviousGameState;
 	}
 }

@@ -2,6 +2,8 @@
 
 #include "Territory.h"
 #include "Army.h"
+#include "Zealot.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ATerritory::ATerritory() : NumArmies{ 0 }
@@ -34,8 +36,18 @@ void ATerritory::AddArmy(int32 Num, FVector Location)
 
 	for (int i = 0; i < Num; ++i)
 	{
-		UWorld* World = GetWorld();
-		AArmy* Army = World->SpawnActor<AArmy>(AArmy::StaticClass(), Location, FRotator::ZeroRotator);
+		UClass* Class = nullptr;
+		for (TObjectIterator<AActor> It; It; ++It)
+		{
+			if (It->GetClass()->GetSuperClass()->GetName() == "Army") {
+				Class = It->GetClass();
+				break;
+			}
+		}
+		if (Class == nullptr) {
+			return;
+		}
+		AActor* Army = GetWorld()->SpawnActor<AActor>(Class, Location, FRotator::ZeroRotator);
 		Army->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 }
@@ -54,7 +66,17 @@ void ATerritory::RemoveArmy()
 void ATerritory::InitArmies(FVector Location)
 {
 	NumArmies = 1;
-	UWorld* World = GetWorld();
-	AArmy* Army = World->SpawnActor<AArmy>(AArmy::StaticClass(), Location, FRotator::ZeroRotator);
+	UClass* Class = nullptr;
+	for (TObjectIterator<AActor> It; It; ++It)
+	{
+		if (It->GetClass()->GetSuperClass()->GetName() == "Army") {
+			Class = It->GetClass();
+			break;
+		}
+	}
+	if (Class == nullptr) {
+		return;
+	}
+	AActor* Army = GetWorld()->SpawnActor<AActor>(Class, Location, FRotator::ZeroRotator);
 	Army->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 }
