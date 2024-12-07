@@ -298,6 +298,11 @@ int32 ARiskGameController::OccupyTerritory(const TArray<AArmy*> Armies)
 	return 0;
 }
 
+int32 ARiskGameController::GetNumArmies()
+{
+	return CurrentPlayer->Armies;
+}
+
 // Game Utilities
 
 URiskPlayer* ARiskGameController::FindContOwner(const AContinent* Continent) const
