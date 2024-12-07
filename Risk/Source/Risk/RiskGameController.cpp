@@ -452,24 +452,28 @@ void ARiskGameController::LeftClick()
 	}
 
 	FHitResult OutHitResult;
-	if (GetHitResultUnderCursor(ECC_Visibility, true, OutHitResult))
+	if (!GetHitResultUnderCursor(ECC_Visibility, true, OutHitResult))
 	{
-		AActor* Actor = OutHitResult.GetActor();
+		return;
+	}
+	AActor* Actor = OutHitResult.GetActor();
 
-		if (Actor->GetClass()->GetSuperClass()->GetName() == "Army")
-		{
-			GameState = ; // Army Selected
-			SelectedArmy = Cast<AArmy>(Actor);
-			SelectTerritory(Actor->GetAttachParentActor());
-		}
-		else
-		{
-			SelectTerritory(Actor);
-		}
+	if (Actor->GetClass()->GetSuperClass()->GetName() == "Army")
+	{
+		PreviousGameState = GameState;
+		GameState = EGameState::ArmySelected; // Army Selected
+		SelectedArmy = Cast<AArmy>(Actor);
+		SelectTerritory(Actor->GetAttachParentActor());
+	}
+	else
+	{
+		SelectTerritory(Actor);
 	}
 }
 
 void ARiskGameController::LeftClickRelease()
 {
-	bArmySelected = false;
+	if (GameState == EGameState::ArmySelected) {
+		GameState = PreviousGameState;
+	}
 }

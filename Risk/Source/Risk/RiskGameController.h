@@ -39,7 +39,6 @@ public:
 
 	// Utilities
 	void MoveCamera();
-	URiskPlayer* GetPlayer();
 	void HighlightTerritory();
 	void SelectTerritory(AActor* Actor);
 	TArray<int32> RollDice(int32 NumDice) const;
@@ -79,6 +78,7 @@ public:
 	UPROPERTY(BluePrintReadWrite, EditAnywhere)
 
 	TArray<URiskPlayer*> Players;
+	URiskPlayer* CurrentPlayer;
 
 protected:
 	// Called when the game starts or when spawned
@@ -88,9 +88,9 @@ protected:
 	AActor* HighlightedActor;
 	AArmy* SelectedArmy;
 	EGameState GameState;
+	EGameState PreviousGameState;
 
 	int32 Turn;
-	URiskPlayer* CurrentPlayer;
 	int32 TerritoriesOccupied;
 
 	ATerritory* TerrOne;
