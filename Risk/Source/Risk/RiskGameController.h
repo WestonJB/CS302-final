@@ -79,7 +79,7 @@ public:
 	TArray<URiskPlayer*> Players;
 
 	UPROPERTY(BluePrintReadWrite, EditAnywhere)
-	URiskPlayer* CurrentPlayer;
+	URiskPlayer CurrentPlayer;
 
 protected:
 	// Called when the game starts or when spawned
