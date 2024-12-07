@@ -76,8 +76,9 @@ public:
 	FVector CameraMovement;
 
 	UPROPERTY(BluePrintReadWrite, EditAnywhere)
-
 	TArray<URiskPlayer*> Players;
+
+	UPROPERTY(BluePrintReadWrite, EditAnywhere)
 	URiskPlayer* CurrentPlayer;
 
 protected:
