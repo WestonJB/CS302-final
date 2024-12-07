@@ -31,6 +31,8 @@ public:
 	// Adds infantry and updates number of armies
 	void AddArmy(int32 Num, FVector Location);
 
+	void RemoveArmy();
+
 	// Resets territory to 1 infantry
 	void InitArmies(FVector Location);
 
@@ -38,6 +40,6 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	int32 Armies;
+	int32 NumArmies;
 
 };

@@ -89,6 +89,7 @@ protected:
 	AArmy* SelectedArmy;
 	EGameState GameState;
 	EGameState PreviousGameState;
+	bool bGameStateUpdate;
 
 	int32 Turn;
 	int32 TerritoriesOccupied;

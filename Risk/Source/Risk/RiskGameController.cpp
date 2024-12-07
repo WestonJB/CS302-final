@@ -13,7 +13,7 @@ typedef UKismetMathLibrary Math;
 
 // Internal
 
-ARiskGameController::ARiskGameController() : CameraZoom{ 1 }, SelectedActor{ nullptr }, GameState{ 0 }
+ARiskGameController::ARiskGameController() : CameraZoom{ 1 }, SelectedActor{ nullptr }, GameState{ 0 }, bGameStateUpdate{ false }
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -84,11 +84,6 @@ void ARiskGameController::MoveCamera()
 	GetPawn()->SetActorLocation(FVector(XPosition, YPosition, 0));
 
 	Cast<ACameraPawn>(GetPawn())->SpringArm->TargetArmLength = Math::Lerp(1000, 4000, CameraZoom);
-}
-
-URiskPlayer* ARiskGameController::GetPlayer()
-{
-	return CurrentPlayer;
 }
 
 void ARiskGameController::HighlightTerritory()
@@ -421,7 +416,7 @@ void ARiskGameController::DownRelease()
 void ARiskGameController::MouseUp()
 {
 	// Rotate army if selected
-	if (bArmySelected) {
+	if (GameState == EGameState::ArmySelected) {
 		SelectedArmy->AddActorWorldRotation(FRotator(0, -30, 0).Quaternion());
 	}
 	// Zoom if otherwise
@@ -434,7 +429,7 @@ void ARiskGameController::MouseUp()
 void ARiskGameController::MouseDown()
 {
 	// Rotate army if selected
-	if (GameState == 4)
+	if (GameState == EGameState::ArmySelected)
 	{
 		SelectedArmy->AddActorWorldRotation(FRotator(0, 30, 0).Quaternion());
 	}
@@ -468,6 +463,28 @@ void ARiskGameController::LeftClick()
 	else
 	{
 		SelectTerritory(Actor);
+		switch (GameState)
+		{
+		case EGameState::PlaceArmies:
+			AddArmy(Cast<ATerritory>(Actor), OutHitResult.Location);
+			break;
+		case EGameState::SelectOne:
+			TerrOne = Cast<ATerritory>(Actor);
+			break;
+		case EGameState::SelectTwo:
+			TerrTwo = Cast<ATerritory>(Actor);
+			break;
+		case EGameState::Occupy:
+			if (OutHitResult.GetActor() == TerrTwo)
+			{
+				TerrOne->RemoveArmy();
+				TerrTwo->AddArmy(1, OutHitResult.Location);
+			}
+			break;
+		default:
+			break;
+		}
+		bGameStateUpdate = true;
 	}
 }
 
