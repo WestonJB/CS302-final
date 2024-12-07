@@ -8,4 +8,25 @@ CONTROLS
 The controls are WASD to move the camera around. Asides from that, everything is done intuitively
 by clicking with the mouse.
 
-There are no known bugs.
+Error & Issues:
+The game was originally going to be split into 3 full sections; Deploying, Attacking, and Fortifying.
+For Deploying, we have implemented a counter of how many troops a player can deploy, but there is no indication of the troops actually
+being deployed as we are having trouble having 3D meshes of models actually appear on the board, which would be the indicator of how
+many troops a player has on a given territory. The reason this is an issue is because the 3D meshes are used in blueprints, but not in the C++
+code due to the fact that translating a 3D mesh to C++ is very difficult as we could not figure it out. No matter which way we tried to add
+the 3D models to the scene, they didn't track into the backend of the game through C++ and therefore would be invisible in Unreal Engine. 
+
+Due to this, it is not possible for us to finish the visability of the deployment phase, but functionally, it would work in c++ code. As for
+the Attacking Phase and Fortifying Phase, once again, we have the functionality of it all there, but the visability of the actual turns is not.
+(If you need evidence, see all c++ code, 3D models, music tracks, etc...)
+
+Fixing Issues:
+I believe that had we worked in Unreal Engine with blueprints only or c++ code only instead of trying to integrate both into one game, we might have had an
+easier time creating Risk: Europe Edition. Theoritically, if we had just used blueprints instead of relying on any C++ code intially, we would been able to make a far
+simplier system that depended only on how blueprints interact with game-objects and game states. Due to the fact that we might have relied on intially coding everything
+up in C++ and trying to integrate that with Unreal Engine somehow. That might have been our fatal mistake. 
+
+As for scope and time working on the projecet, we initally planned a large Risk game that would require far more than 20 hours of work for all four of us. However, there
+was no way for us to know what sort of game or project would take us each 20 hours of work. We chose a project that was completely out of the scope of what this class
+probably intended and that may have also been a fatal mistake. But not one that was entirely our fault as it was quite vague as to what students should choose, given the
+requirements.
