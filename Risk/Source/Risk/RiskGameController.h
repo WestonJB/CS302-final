@@ -9,8 +9,17 @@
 class AContinent;
 class ATerritory;
 class AArmy;
-class UCard;
 class URiskPlayer;
+
+enum class EGameState : int8
+{
+	Neutral,
+	PlaceArmies,
+	SelectOne,
+	SelectTwo,
+	Occupy,
+	ArmySelected,
+};
 
 /**
  * 
@@ -30,6 +39,7 @@ public:
 
 	// Utilities
 	void MoveCamera();
+	URiskPlayer* GetPlayer();
 	void HighlightTerritory();
 	void SelectTerritory(AActor* Actor);
 	TArray<int32> RollDice(int32 NumDice) const;
@@ -39,22 +49,14 @@ public:
 	int32 AddArmy(ATerritory* Territory, FVector HitLocation);
 	void MoveArmy();
 	void GiveArmies();
-	int32 TradeArmies(ATerritory* Territory, FVector HitLocation, TCHAR StartType, TCHAR EndType);
 
 	int32 SetAttack(ATerritory* Start, ATerritory* End);
 	int32 Attack(int32 PlayerOneDice, int32 PlayerTwoDice, FVector HitLocation);
 	int32 OccupyTerritory(const TArray<AArmy*> Armies);
 
-	int32 SetFortify(ATerritory* Start, ATerritory* End);
-	void Fortify(const TArray<AArmy*> Armies);
-
-	void GiveCard();
-	int32 TradeCards(const TArray<int32>& CardsInd, FVector Location);
-
 	URiskPlayer* FindContOwner(const AContinent* Continent) const;
 	bool AreConnectedTerritories(const ATerritory* Start, const ATerritory* End) const;
 	int32 CaptureTerritory(ATerritory* Territory);
-	bool IsValidTrade(const TArray<int32>& CardsInd) const;
 	ATerritory* FindTerritory(const FString& Name) const;
 
 	// Input
@@ -85,18 +87,14 @@ protected:
 	AActor* SelectedActor;
 	AActor* HighlightedActor;
 	AArmy* SelectedArmy;
-	bool bArmySelected;
+	EGameState GameState;
 
 	int32 Turn;
+	URiskPlayer* CurrentPlayer;
 	int32 TerritoriesOccupied;
-
-	TArray<UCard*> DrawPile;
-	TArray<UCard*> DiscardPile;
 
 	ATerritory* TerrOne;
 	ATerritory* TerrTwo;
-	int32 Trades;
-	bool bGotTradeBonus;
 	int32 AttackArmies;
 	bool bCaptured;
 

@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "RiskGameController.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Continent.h"
@@ -14,7 +13,7 @@ typedef UKismetMathLibrary Math;
 
 // Internal
 
-ARiskGameController::ARiskGameController() : CameraZoom{ 1 }, SelectedActor{ nullptr }, bArmySelected{ false }
+ARiskGameController::ARiskGameController() : CameraZoom{ 1 }, SelectedActor{ nullptr }, GameState{ 0 }
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -34,13 +33,21 @@ void ARiskGameController::BeginPlay()
 void ARiskGameController::Tick(float DeltaTime)
 {
 	MoveCamera();
-	if (bArmySelected)
+	switch (GameState)
 	{
-		MoveArmy();
-	}
-	else
-	{
+	case EGameState::Neutral:
+		break;
+	case EGameState::PlaceArmies:
+	case EGameState::SelectOne:
+	case EGameState::SelectTwo:
+	case EGameState::Occupy:
 		HighlightTerritory();
+		break;
+	case EGameState::ArmySelected:
+		MoveArmy();
+		break;
+	default:
+		break;
 	}
 }
 
@@ -66,22 +73,8 @@ void ARiskGameController::SetupInputComponent()
 
 void ARiskGameController::MoveCamera()
 {
-	double MouseX, MouseY;
-	int32 ScreenX, ScreenY;
-	GetViewportSize(ScreenX, ScreenY);
-	GetMousePosition(MouseX, MouseY);
-
-	// Get speed from each side of viewport
-	double MouseRight = 1 - FMath::Clamp(Math::NormalizeToRange(MouseX, 0, 0.2 * ScreenX), 0, 1);
-	double MouseLeft = -FMath::Clamp(Math::NormalizeToRange(MouseX, 0.8 * ScreenX, ScreenX), 0, 1);
-	double MouseUp = 1 - FMath::Clamp(Math::NormalizeToRange(MouseY, 0, 0.2 * ScreenX), 0, 1);
-	double MouseDown = -FMath::Clamp(Math::NormalizeToRange(MouseY, 0.8 * ScreenX, ScreenX), 0, 1);
-
-	// Create movement vector
-	FVector MouseMovement = FVector(MouseRight + MouseLeft, MouseUp + MouseDown, 0);
-
-	// Turn into speed using lerp
-	FVector MouseSpeed = (CameraMovement.GetSafeNormal() - MouseMovement).GetClampedToSize(0, 1) * Math::Lerp(10, 60, CameraZoom);
+	// Turn movement into speed using lerp
+	FVector MouseSpeed = (CameraMovement.GetSafeNormal()).GetClampedToSize(0, 1) * Math::Lerp(10, 60, CameraZoom);
 
 	// Clamp coordinates
 	double XPosition = FMath::Clamp(MouseSpeed.X + GetPawn()->GetActorLocation().X, -3750, 3750);
@@ -91,6 +84,11 @@ void ARiskGameController::MoveCamera()
 	GetPawn()->SetActorLocation(FVector(XPosition, YPosition, 0));
 
 	Cast<ACameraPawn>(GetPawn())->SpringArm->TargetArmLength = Math::Lerp(1000, 4000, CameraZoom);
+}
+
+URiskPlayer* ARiskGameController::GetPlayer()
+{
+	return CurrentPlayer;
 }
 
 void ARiskGameController::HighlightTerritory()
@@ -178,7 +176,7 @@ int32 ARiskGameController::AddArmy(ATerritory* Territory, FVector HitLocation)
 	}
 	else {
 		if (Territory->TerritoryOwner != GamePlayer) return 2;
-		Territory->AddInfantry(1, HitLocation);
+		Territory->AddArmy(1, HitLocation);
 		--GamePlayer->Armies; // unnecessary after the setup of the game
 	}
 	return 0;
@@ -203,59 +201,6 @@ void ARiskGameController::GiveArmies()
 	for (AContinent* i : GamePlayer->Continents) newArmies += 4;
 	if (3 < newArmies) GamePlayer->Armies += newArmies;
 	else GamePlayer->Armies += 3;
-}
-
-int32 ARiskGameController::TradeArmies(ATerritory* Territory, FVector HitLocation, TCHAR StartType, TCHAR EndType)
-{
-	/* Return Key:
-	 * 0: traded armies
-	 * 1: error, do not own territory
-	 * 2: error, trading pieces for the same pieces (startType == endType)
-	 * 3: error, do not own enough pieces to trade */
-	URiskPlayer* GamePlayer = Players[Turn];
-	if (Territory->TerritoryOwner != GamePlayer) return 1;
-	if (StartType == EndType) return 2;
-	switch (StartType) {
-	case 'i':
-		switch (EndType) {
-		case 'c':
-			if (Territory->GetInfantry() < 5) return 3;
-			Territory->AddInfantry(-5, HitLocation);
-			Territory->AddCavalry(1, HitLocation);
-			break;
-		case 'a':
-			if (Territory->GetInfantry() < 10) return 3;
-			Territory->AddInfantry(-10, HitLocation);
-			Territory->AddArtillery(1, HitLocation);
-			break;
-		}
-		break;
-	case 'c':
-		switch (EndType) {
-		case 'i':
-			Territory->AddCavalry(-1, HitLocation);
-			Territory->AddInfantry(5, HitLocation);
-			break;
-		case 'a':
-			if (Territory->GetCavalry() < 2) return 3;
-			Territory->AddCavalry(2, HitLocation);
-			Territory->AddArtillery(1, HitLocation);
-			break;
-		}
-		break;
-	case 'a':
-		Territory->AddArtillery(-1, HitLocation);
-		switch (EndType) {
-		case 'i':
-			Territory->AddInfantry(10, HitLocation);
-			break;
-		case 'c':
-			Territory->AddCavalry(2, HitLocation);
-			break;
-		}
-		break;
-	}
-	return 0;
 }
 
 int32 ARiskGameController::SetAttack(ATerritory* Start, ATerritory* End)
@@ -291,9 +236,9 @@ int32 ARiskGameController::Attack(int32 PlayerOneDice, int32 PlayerTwoDice, FVec
 	 * 7: error, player two must have at least one infantry per die */
 	 // some error checking
 	if (PlayerOneDice < 1 || PlayerOneDice > 3) return 4;
-	if (TerrOne->GetInfantry() < PlayerOneDice + 1) return 5;
+	if (TerrOne->GetArmies() < PlayerOneDice + 1) return 5;
 	if (PlayerOneDice < 1 || PlayerTwoDice > 2) return 6;
-	if (TerrTwo->GetInfantry() < PlayerTwoDice) return 7;
+	if (TerrTwo->GetArmies() < PlayerTwoDice) return 7;
 
 	// attack
 	TArray<int32> PlayerOneRoll = RollDice(PlayerOneDice);
@@ -306,22 +251,22 @@ int32 ARiskGameController::Attack(int32 PlayerOneDice, int32 PlayerTwoDice, FVec
 	// compare the two highest rolls
 	if (PlayerOneRoll[PlayerOneDice - 1] > PlayerTwoRoll[PlayerTwoDice - 1]) {
 		// player one wins the battle
-		TerrTwo->AddInfantry(-1, HitLocation);
+		TerrTwo->AddArmy(-1, HitLocation);
 	}
 	else {
 		// player two wins the battle
-		TerrOne->AddInfantry(-1, HitLocation);
+		TerrOne->AddArmy(-1, HitLocation);
 	}
 	// see if there is another battle to compare and compare the second highest
 	if (PlayerOneDice > 1 && PlayerTwoDice > 1) {
 		if (PlayerOneRoll[PlayerOneDice - 2]
 			> PlayerTwoRoll[PlayerTwoDice - 2]) {
 			// player one wins the battle
-			TerrTwo->AddInfantry(-1, HitLocation);
+			TerrTwo->AddArmy(-1, HitLocation);
 		}
 		else {
 			// player two wins the battle
-			TerrOne->AddInfantry(-1, HitLocation);
+			TerrOne->AddArmy(-1, HitLocation);
 		}
 	}
 	// if the opposing player has no more armies, then capture his territory
@@ -354,130 +299,11 @@ int32 ARiskGameController::OccupyTerritory(const TArray<AArmy*> Armies)
 		}
 	}
 	if (MovedArmies < AttackArmies) return 1;
-	Fortify(Armies);
 	AttackArmies = 0;
 	return 0;
 }
 
-int32 ARiskGameController::SetFortify(ATerritory* Start, ATerritory* End)
-{
-	/* Return Key:
-	 * 0: set start and end territories for fortify
-	 * 1: error, do not own starting territory
-	 * 2: error, do not own ending territory
-	 * 3: error, territories are not connected */
-	URiskPlayer* GamePlayer = Players[Turn];
-	if (Start->TerritoryOwner != GamePlayer) return 1;
-	if (End->TerritoryOwner != GamePlayer) return 2;
-	if (!AreConnectedTerritories(Start, End)) return 3;
-	TerrOne = Start;
-	TerrTwo = End;
-	return 0;
-}
-
-void ARiskGameController::Fortify(const TArray<AArmy*> Armies)
-{
-	int32 Value;
-	FVector Temp;
-	for (AArmy* Army : Armies) {
-		// find the value of the piece and change the armies on territories
-		FString ArmyName = Army->GetClass()->GetName();
-		if (ArmyName == "BP_Infantry_C") {
-			Value = 1;
-			TerrOne->AddInfantry(-1, Temp);
-			TerrTwo->AddInfantry(1, Temp);
-		}
-		else if (ArmyName == "BP_Cavalry_C") {
-			Value = 5;
-			TerrOne->AddCavalry(-1, Temp);
-			TerrTwo->AddCavalry(1, Temp);
-		}
-		else if (ArmyName == "BP_Artillery_C") {
-			Value = 10;
-			TerrOne->AddArtillery(-1, Temp);
-			TerrTwo->AddArtillery(1, Temp);
-		}
-		else {
-			Value = 1;
-		}
-	}
-}
-
-void ARiskGameController::GiveCard()
-{
-	// give the player a card and remove it from the DrawPile
-	Players[Turn]->Cards.Add(DrawPile[DrawPile.Num() - 1]);
-	DrawPile.Pop();
-	// if the deck is empty, make the DiscardPile become the DrawPile
-	if (DrawPile.Num() == 0) {
-		DrawPile = DiscardPile;
-		DiscardPile.Empty();
-		// shuffle
-		int32 Temp;
-		TObjectPtr<UCard> Temp2;
-		for (int32 i = 0; i < DrawPile.Num() - 1; i++) {
-			Temp = std::rand() % (DrawPile.Num() - i) + i;
-			Temp2 = DrawPile[i];
-			DrawPile[i] = DrawPile[Temp];
-			DrawPile[Temp] = Temp2;
-		}
-	}
-}
-
-int32 ARiskGameController::TradeCards(const TArray<int32>& CardsInd, FVector Location)
-{
-	/* Return Key:
-	 * 0: traded in cards
-	 * 1: error, cards do not form a set that can be traded */
-	URiskPlayer* GamePlayer = Players[Turn];
-	if (!IsValidTrade(CardsInd)) return 1;
-	// if they own the territory, then 2 extra armies are placed there
-	// however, this happens once per turn
-	if (!bGotTradeBonus) {
-		for (int32 i = 0; i < 3; i++) {
-			TObjectPtr<ATerritory> CardTerr = FindTerritory(GamePlayer->Cards[CardsInd[i]]
-				->Territory);
-			if (CardTerr == nullptr) continue; // wild card; has no territory
-			if (CardTerr->TerritoryOwner == GamePlayer) {
-				bGotTradeBonus = true;
-				CardTerr->AddInfantry(2, Location);
-				break;
-			}
-		}
-	}
-	// give armies for the trade
-	switch (Trades) {
-	case 0:
-		GamePlayer->Armies += 4;
-		break;
-	case 1:
-		GamePlayer->Armies += 6;
-		break;
-	case 2:
-		GamePlayer->Armies += 8;
-		break;
-	case 3:
-		GamePlayer->Armies += 10;
-		break;
-	case 4:
-		GamePlayer->Armies += 12;
-		break;
-	case 5:
-		GamePlayer->Armies += 15;
-		break;
-	default:
-		GamePlayer->Armies += 5 * Trades - 10;
-		break;
-	}
-	// put the cards back in DiscardPile and remove them from the player's hand
-	DiscardPile.Add(GamePlayer->Cards[CardsInd[0]]);
-	DiscardPile.Add(GamePlayer->Cards[CardsInd[1]]);
-	DiscardPile.Add(GamePlayer->Cards[CardsInd[2]]);
-	GamePlayer->Cards.RemoveAt(CardsInd[0]);
-	GamePlayer->Cards.RemoveAt(CardsInd[1]);
-	GamePlayer->Cards.RemoveAt(CardsInd[2]);
-	return 0;
-}
+// Game Utilities
 
 URiskPlayer* ARiskGameController::FindContOwner(const AContinent* Continent) const
 {
@@ -545,11 +371,6 @@ int32 ARiskGameController::CaptureTerritory(ATerritory* Territory)
 	}
 }
 
-bool ARiskGameController::IsValidTrade(const TArray<int32>& CardsInd) const
-{
-	return false;
-}
-
 ATerritory* ARiskGameController::FindTerritory(const FString& Name) const
 {
 	return nullptr;
@@ -613,7 +434,8 @@ void ARiskGameController::MouseUp()
 void ARiskGameController::MouseDown()
 {
 	// Rotate army if selected
-	if (bArmySelected) {
+	if (GameState == 4)
+	{
 		SelectedArmy->AddActorWorldRotation(FRotator(0, 30, 0).Quaternion());
 	}
 	// Zoom if otherwise
@@ -625,14 +447,18 @@ void ARiskGameController::MouseDown()
 
 void ARiskGameController::LeftClick()
 {
+	if (GameState == EGameState::Neutral) {
+		return;
+	}
+
 	FHitResult OutHitResult;
 	if (GetHitResultUnderCursor(ECC_Visibility, true, OutHitResult))
 	{
 		AActor* Actor = OutHitResult.GetActor();
 
-		if (Actor->GetClass()->GetSuperClass()->GetSuperClass()->GetName() == "Army")
+		if (Actor->GetClass()->GetSuperClass()->GetName() == "Army")
 		{
-			bArmySelected = true;
+			GameState = ; // Army Selected
 			SelectedArmy = Cast<AArmy>(Actor);
 			SelectTerritory(Actor->GetAttachParentActor());
 		}
