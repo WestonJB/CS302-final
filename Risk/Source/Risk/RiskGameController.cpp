@@ -17,6 +17,12 @@ ARiskGameController::ARiskGameController() : CameraZoom{ 1 }, SelectedActor{ nul
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	for (int i = 0; i < 4; ++i) {
+		Players.Add(NewObject<URiskPlayer>());
+		Players[i]->Armies = 5;
+	}
+	CurrentPlayer = Players[0];
 }
 
 void ARiskGameController::BeginPlay()

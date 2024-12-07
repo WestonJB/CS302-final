@@ -53,6 +53,9 @@ public:
 	int32 Attack(int32 PlayerOneDice, int32 PlayerTwoDice, FVector HitLocation);
 	int32 OccupyTerritory(const TArray<AArmy*> Armies);
 
+	UFUNCTION(BlueprintCallable)
+	int32 GetNumArmies();
+
 	URiskPlayer* FindContOwner(const AContinent* Continent) const;
 	bool AreConnectedTerritories(const ATerritory* Start, const ATerritory* End) const;
 	int32 CaptureTerritory(ATerritory* Territory);
@@ -79,7 +82,7 @@ public:
 	TArray<URiskPlayer*> Players;
 
 	UPROPERTY(BluePrintReadWrite, EditAnywhere)
-	URiskPlayer CurrentPlayer;
+	URiskPlayer* CurrentPlayer;
 
 protected:
 	// Called when the game starts or when spawned
